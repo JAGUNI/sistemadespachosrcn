@@ -62,11 +62,11 @@
         .lbl-green { color: #28a745; }
         .lbl-user { font-weight: 500; }
         
-        /* Casilla numérica estilizada de 4 dígitos */
+        /* Casilla numérica estilizada ajustada para 5 dígitos */
         .input-operario {
             width: 100%;
             padding: 12px;
-            margin: 10px 0 5px 0;
+            margin: 10px 0 15px 0; /* Aumentado el margen inferior ya que se quitó el texto de abajo */
             border: 1px solid var(--input-border);
             border-radius: 8px;
             box-sizing: border-box;
@@ -77,13 +77,6 @@
             letter-spacing: 4px;
             font-weight: bold;
             transition: all 0.3s ease;
-        }
-
-        .info-operario {
-            font-size: 13px;
-            margin-bottom: 15px;
-            font-weight: bold;
-            min-height: 18px;
         }
         
         textarea {
@@ -158,9 +151,8 @@
         
         <h3 style="margin-bottom:5px; font-size: 16px;">Envio de paños a la planta acabados</h3>
         
-        <!-- Entrada para el código de Operario -->
-        <input type="text" id="codOperario" class="input-operario" placeholder="CÓDIGO" maxlength="5" oninput="procesarEntradaOperario(this)">
-        <div id="operarioStatus" class="info-operario" style="color: #666;">Ingrese los 5 dígitos numéricos</div>
+        <!-- Entrada modificada para el código de Operario a un máximo de 5 dígitos -->
+        <input type="text" id="codOperario" class="input-operario" placeholder="CÓDIGO OPERARIO (5 DÍGITOS)" maxlength="5" oninput="procesarEntradaOperario(this)">
 
         <textarea id="txtMensaje" placeholder="Escribe aquí el mensaje..."></textarea>
         <button id="btnEnviarWA" class="btn-whatsapp" onclick="enviarWhatsAppInmune()" disabled>Enviar a WhatsApp 💬</button>
@@ -195,30 +187,24 @@
             document.querySelector('.theme-btn').innerText = newTheme === 'dark' ? '☀️' : '🌙';
         }
 
-        // Restringe entrada solo a números y procesa al llegar a 4 dígitos
+        // Restringe entrada solo a números y procesa al llegar a 5 dígitos
         function procesarEntradaOperario(input) {
             input.value = input.value.replace(/[^0-9]/g, ''); // Elimina letras inmediatamente
             
-            const statusDiv = document.getElementById('operarioStatus');
             const btnWA = document.getElementById('btnEnviarWA');
             
-            if (input.value.length < 4) {
-                statusDiv.innerText = "Ingrese los 4 dígitos numéricos";
-                statusDiv.style.color = "#666";
+            // Si tiene menos de 5 dígitos, mantenemos el botón bloqueado
+            if (input.value.length < 5) {
                 btnWA.disabled = true;
                 operarioValidado = false;
                 return;
             }
 
-            statusDiv.innerText = "Verificando en base de datos...";
-            statusDiv.style.color = "#ffc107";
-
-            // Disparar validación automática con el servidor
+            // Disparar validación automática silenciosa al llegar a los 5 dígitos
             verificarOperarioEnSheets(input.value);
         }
 
         async function verificarOperarioEnSheets(codigo) {
-            const statusDiv = document.getElementById('operarioStatus');
             const btnWA = document.getElementById('btnEnviarWA');
 
             try {
@@ -232,19 +218,19 @@
                 let resultado = await res.json();
 
                 if (resultado.status === "success") {
-                    statusDiv.innerText = `✔️ ${resultado.nombre} - ${resultado.cargo}`;
-                    statusDiv.style.color = "#28a745";
-                    btnWA.disabled = false; // Habilita el envío de WhatsApp
+                    // El operario es válido: Se habilita el botón sin pintar nada en pantalla
+                    btnWA.disabled = false; 
                     operarioValidado = true;
                 } else {
-                    statusDiv.innerText = `❌ ${resultado.message}`;
-                    statusDiv.style.color = "#dc3545";
+                    // El código no existe: Mandamos una alerta tradicional y bloqueamos el botón
+                    alert("❌ " + resultado.message);
                     btnWA.disabled = true;
                     operarioValidado = false;
                 }
             } catch (error) {
-                statusDiv.innerText = "❌ Error de conexión al verificar operario.";
-                statusDiv.style.color = "#dc3545";
+                alert("❌ Error de conexión al verificar el código de operario.");
+                btnWA.disabled = true;
+                operarioValidado = false;
                 console.error(error);
             }
         }
