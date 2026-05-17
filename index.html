@@ -107,7 +107,7 @@
     </div>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxHvVEwyjXpPdPcyGa13EGTvFZw4TuQ_bEj8CFmmF-YW0jT90liRE2elAGaR48metjc0A/exec";
+        const WEB_APP_URL = "https://google.com";
 
         function cambiarFormulario(mostrarLogin) {
             document.getElementById('loginForm').classList.toggle('hidden', !mostrarLogin);
@@ -141,7 +141,7 @@
             document.getElementById('regPass').value = "";
         }
 
-        function ejecutarAccion(action) {
+        async function ejecutarAccion(action) {
             let payload = { action: action };
 
             if (action === 'register') {
@@ -159,9 +159,17 @@
                 if(!payload.usuario || !payload.password) return alert("Completa todos los campos");
             }
 
-            const callbackName = 'googleSheetsCallback';
-            
-            window[callbackName] = function(resultado) {
+            try {
+                // Envío de datos estándar compatible con servidores en la nube
+                let res = await fetch(WEB_APP_URL, {
+                    method: "POST",
+                    mode: "cors",
+                    headers: { "Content-Type": "text/plain" },
+                    body: JSON.stringify(payload)
+                });
+                
+                let resultado = await res.json();
+
                 if (resultado.status === "success") {
                     if (action === 'register') {
                         alert(resultado.message);
@@ -173,24 +181,10 @@
                 } else {
                     alert(resultado.message);
                 }
-                if (document.getElementById('jsonpScript')) {
-                    document.body.removeChild(document.getElementById('jsonpScript'));
-                }
-                delete window[callbackName];
-            };
-
-            let urlConDatos = WEB_APP_URL + "?callback=" + callbackName + "&data=" + encodeURIComponent(JSON.stringify(payload));
-            
-            let viejoScript = document.getElementById('jsonpScript');
-            if (viejoScript) viejoScript.remove();
-
-            var script = document.createElement('script');
-            script.id = 'jsonpScript';
-            script.src = urlConDatos;
-            script.onerror = function() {
+            } catch (error) {
                 alert("Error de conexión. Asegúrate de haber publicado tu Google Apps Script como 'Nueva versión' y con acceso para 'Cualquiera'.");
-            };
-            document.body.appendChild(script);
+                console.error(error);
+            }
         }
     </script>
 </body>
