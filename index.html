@@ -160,7 +160,6 @@
             }
 
             try {
-                // Envío de datos estándar compatible con servidores en la nube
                 let res = await fetch(WEB_APP_URL, {
                     method: "POST",
                     mode: "cors",
@@ -176,7 +175,7 @@
                         cambiarFormulario(true);
                     } else {
                         localStorage.setItem('usuarioLogueado', resultado.name);
-                        window.location.href = "./bienvenida.html";
+                        irAPagina("bienvenida.html");
                     }
                 } else {
                     alert(resultado.message);
@@ -184,6 +183,18 @@
             } catch (error) {
                 alert("Error de conexión. Asegúrate de haber publicado tu Google Apps Script como 'Nueva versión' y con acceso para 'Cualquiera'.");
                 console.error(error);
+            }
+        }
+
+        // Función inteligente para evitar errores 404 al cambiar de página
+        function irAPagina(destino) {
+            let path = window.location.pathname;
+            if (window.location.hostname.includes("github.io")) {
+                let segmentos = path.split('/').filter(Boolean);
+                let nombreRepo = segmentos[0] || "";
+                window.location.href = window.location.origin + "/" + nombreRepo + "/" + destino;
+            } else {
+                window.location.href = destino;
             }
         }
     </script>
