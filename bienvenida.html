@@ -1,356 +1,313 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Supervisión</title>
-    <style>
-        :root {
-            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --panel-bg: rgba(255, 255, 255, 0.85);
-            --text-color: #333333;
-            --input-bg: rgba(255, 255, 255, 0.9);
-            --input-border: #cccccc;
-            --shadow: rgba(0, 0, 0, 0.15);
-            --readonly-bg: #e9ecef;
-            --readonly-text: #495057;
-        }
-
-        [data-theme="dark"] {
-            --bg-gradient: linear-gradient(135deg, #1f1c2c 0%, #928dab 100%);
-            --panel-bg: rgba(30, 30, 40, 0.85);
-            --text-color: #ffffff;
-            --input-bg: rgba(50, 50, 65, 0.9);
-            --input-border: #555565;
-            --shadow: rgba(0, 0, 0, 0.5);
-            --readonly-bg: #2d2d3a;
-            --readonly-text: #ced4da;
-        }
-
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-            background: var(--bg-gradient); 
-            margin: 0;
-            transition: background 0.5s ease;
-        }
-
-        .container { 
-            background: var(--panel-bg); 
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            padding: 40px 30px; 
-            border-radius: 16px; 
-            box-shadow: 0 8px 32px 0 var(--shadow); 
-            width: 420px; 
-            text-align: center; 
-            color: var(--text-color);
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .header-supervisor {
-            font-size: 24px;
-            font-weight: bold;
-            margin-top: 0;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .lbl-green { color: #28a745; }
-        .lbl-user { font-weight: 500; }
-        
-        .row-operario {
-            display: flex;
-            gap: 10px;
-            margin: 15px 0;
-            width: 100%;
-        }
-
-        .input-code {
-            width: 35%;
-            padding: 12px;
-            border: 1px solid var(--input-border);
-            border-radius: 8px;
-            box-sizing: border-box;
-            background: var(--input-bg);
-            color: var(--text-color);
-            font-size: 16px;
-            text-align: center;
-            font-weight: bold;
-            letter-spacing: 2px;
-            transition: all 0.3s ease;
-        }
-
-        .input-display {
-            width: 65%;
-            padding: 12px;
-            border: 1px solid var(--input-border);
-            border-radius: 8px;
-            box-sizing: border-box;
-            background: var(--readonly-bg);
-            color: var(--readonly-text);
-            font-size: 14px;
-            text-align: left;
-            font-weight: bold;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            transition: all 0.3s ease;
-        }
-        
-        textarea {
-            width: 100%;
-            height: 120px;
-            padding: 12px;
-            margin-top: 5px;
-            border: 1px solid var(--input-border);
-            border-radius: 8px;
-            resize: none;
-            box-sizing: border-box;
-            font-family: inherit;
-            background: var(--input-bg);
-            color: var(--text-color);
-            font-size: 16px;
-            font-weight: bold;
-            line-height: 1.5;
-            letter-spacing: 1px;
-            transition: all 0.3s ease;
-        }
-        
-        button { 
-            width: 100%; 
-            padding: 12px; 
-            border: none; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            font-size: 16px; 
-            font-weight: bold;
-            margin-top: 12px; 
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-
-        button:hover:not(:disabled) { transform: translateY(-1px); }
-        button:disabled { background: #cccccc !important; color: #666666 !important; cursor: not-allowed; box-shadow: none; }
-
-        .btn-whatsapp { background: #25D366; color: white; }
-        .btn-whatsapp:hover:not(:disabled) { background: #128C7E; }
-        
-        .btn-logout { background: #dc3545; color: white; margin-top: 25px; }
-        .btn-logout:hover { background: #bd2130; }
-
-        .theme-btn {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: var(--panel-bg);
-            border: 1px solid var(--input-border);
-            padding: 10px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 20px;
-            box-shadow: 0 4px 12px var(--shadow);
-            transition: all 0.3s ease;
-            width: 45px;
-            height: 45px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-    </style>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Panel de Supervisión</title>
+ <style>
+ :root {
+ --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+ --panel-bg: rgba(255, 255, 255, 0.85);
+ --text-color: #333333;
+ --input-bg: rgba(255, 255, 255, 0.9);
+ --input-border: #cccccc;
+ --shadow: rgba(0, 0, 0, 0.15);
+ --readonly-bg: #e9ecef;
+ --readonly-text: #495057;
+ }
+ [data-theme="dark"] {
+ --bg-gradient: linear-gradient(135deg, #1f1c2c 0%, #928dab 100%);
+ --panel-bg: rgba(30, 30, 40, 0.85);
+ --text-color: #ffffff;
+ --input-bg: rgba(50, 50, 65, 0.9);
+ --input-border: #555565;
+ --shadow: rgba(0, 0, 0, 0.5);
+ --readonly-bg: #2d2d3a;
+ --readonly-text: #ced4da;
+ }
+ body { 
+ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+ display: flex; 
+ justify-content: center; 
+ align-items: center; 
+ height: 100vh; 
+ background: var(--bg-gradient); 
+ margin: 0;
+ transition: background 0.5s ease;
+ }
+ .container { 
+ background: var(--panel-bg); 
+ backdrop-filter: blur(10px);
+ -webkit-backdrop-filter: blur(10px);
+ padding: 40px 30px; 
+ border-radius: 16px; 
+ box-shadow: 0 8px 32px 0 var(--shadow); 
+ width: 420px; 
+ text-align: center; 
+ color: var(--text-color);
+ transition: all 0.3s ease;
+ border: 1px solid rgba(255, 255, 255, 0.1);
+ }
+ .header-supervisor {
+ font-size: 24px;
+ font-weight: bold;
+ margin-top: 0;
+ margin-bottom: 20px;
+ display: flex;
+ justify-content: center;
+ align-items: center;
+ gap: 8px;
+ }
+ .lbl-green { color: #28a745; }
+ .lbl-user { font-weight: 500; }
+ 
+ .row-operario {
+ display: flex;
+ gap: 10px;
+ margin: 15px 0;
+ width: 100%;
+ }
+ .input-code {
+ width: 35%;
+ padding: 12px;
+ border: 1px solid var(--input-border);
+ border-radius: 8px;
+ box-sizing: border-box;
+ background: var(--input-bg);
+ color: var(--text-color);
+ font-size: 16px;
+ text-align: center;
+ font-weight: bold;
+ letter-spacing: 2px;
+ transition: all 0.3s ease;
+ }
+ .input-display {
+ width: 65%;
+ padding: 12px;
+ border: 1px solid var(--input-border);
+ border-radius: 8px;
+ box-sizing: border-box;
+ background: var(--readonly-bg);
+ color: var(--readonly-text);
+ font-size: 14px;
+ text-align: left;
+ font-weight: bold;
+ overflow: hidden;
+ text-overflow: ellipsis;
+ white-space: nowrap;
+ transition: all 0.3s ease;
+ }
+ 
+ textarea {
+ width: 100%;
+ height: 120px;
+ padding: 12px;
+ margin-top: 5px;
+ border: 1px solid var(--input-border);
+ border-radius: 8px;
+ resize: none;
+ box-sizing: border-box;
+ font-family: inherit;
+ background: var(--input-bg);
+ color: var(--text-color);
+ font-size: 16px;
+ font-weight: bold;
+ line-height: 1.5;
+ letter-spacing: 1px;
+ transition: all 0.3s ease;
+ }
+ 
+ button { 
+ width: 100%; 
+ padding: 12px; 
+ border: none; 
+ border-radius: 8px; 
+ cursor: pointer; 
+ font-size: 16px; 
+ font-weight: bold;
+ margin-top: 12px; 
+ transition: all 0.2s ease;
+ box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+ }
+ button:hover:not(:disabled) { transform: translateY(-1px); }
+ button:disabled { background: #cccccc !important; color: #666666 !important; cursor: not-allowed; box-shadow: none; }
+ .btn-whatsapp { background: #25D366; color: white; }
+ .btn-whatsapp:hover:not(:disabled) { background: #128C7E; }
+ 
+ .btn-logout { background: #dc3545; color: white; margin-top: 25px; }
+ .btn-logout:hover { background: #bd2130; }
+ .theme-btn {
+ position: fixed;
+ top: 20px;
+ right: 20px;
+ background: var(--panel-bg);
+ border: 1px solid var(--input-border);
+ padding: 10px;
+ border-radius: 50%;
+ cursor: pointer;
+ font-size: 20px;
+ box-shadow: 0 4px 12px var(--shadow);
+ transition: all 0.3s ease;
+ width: 45px;
+ height: 45px;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ }
+ </style>
 </head>
 <body>
-
-    <!-- Corregidos los iconos visuales de Sol/Luna faltantes para el Modo Oscuro -->
-    <button class="theme-btn" onclick="toggleTheme()">🌙</button>
-
-    <div class="container">
-        <div class="header-supervisor">
-            <span class="lbl-green">Supervisor:</span>
-            <span id="usuarioNombre" class="lbl-user">...</span>
-        </div>
-        
-        <hr style="border: 0; border-top: 1px solid var(--input-border); margin: 20px 0;">
-        
-        <h3 style="margin-bottom:5px; font-size: 16px; text-align: left; padding-left: 2px;">Envio de paños a la planta acabados</h3>
-        
-        <div class="row-operario">
-            <input type="text" id="codOperario" class="input-code" placeholder="CÓDIGO" maxlength="5" oninput="procesarEntradaOperario(this)">
-            <input type="text" id="displayOperario" class="input-display" value="Esperando código..." readonly>
-        </div>
-
-        <textarea id="txtMensaje" placeholder="Escribe aquí el mensaje..." oninput="validarFormatoTexto(this)" onkeydown="controlarTeclas(event, this)"></textarea>
-        
-        <button id="btnEnviarWA" class="btn-whatsapp" onclick="enviarReporteCompleto()" disabled>Enviar a WhatsApp 💬</button>
-        <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
-    </div>
-
-    <script>
-        // CORRECCIÓN: Se limpió por completo el carácter corrupto invisible que tenía tu URL de Google Apps Script
-        const WEB_APP_URL = "https://google.com";
-        let operarioValidado = false;
-        let codigoOperarioActual = "";
-        let nombreOperarioActual = "";
-        let nombreSupervisor = "";
-
-        window.onload = function() {
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            document.documentElement.setAttribute('data-theme', savedTheme);
-            document.querySelector('.theme-btn').innerText = savedTheme === 'dark' ? '☀️' : '🌙';
-
-            nombreSupervisor = localStorage.getItem('usuarioLogueado') || "Supervisor";
-            document.getElementById('usuarioNombre').innerText = nombreSupervisor;
-            limpiarCuadroTexto();
-        };
-
-        function toggleTheme() {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            document.querySelector('.theme-btn').innerText = newTheme === 'dark' ? '☀️' : '🌙';
-        }
-
-        function limpiarCuadroTexto() {
-            document.getElementById('txtMensaje').value = "";
-        }
-
-        function procesarEntradaOperario(input) {
-            input.value = input.value.replace(/[^0-9]/g, '');
-            const btnWA = document.getElementById('btnEnviarWA');
-            const displayInput = document.getElementById('displayOperario');
-            const txtArea = document.getElementById('txtMensaje');
-            
-            if (input.value.length < 5) {
-                btnWA.disabled = true;
-                operarioValidado = false;
-                displayInput.value = "Esperando código...";
-                limpiarCuadroTexto();
-                return;
-            }
-            codigoOperarioActual = input.value;
-            displayInput.value = "Verificando...";
-            
-            txtArea.value = `COD ${input.value}\n`;
-            txtArea.focus();
-            verificarOperarioEnSheets(input.value);
-        }
-
-        async function verificarOperarioEnSheets(codigo) {
-            const btnWA = document.getElementById('btnEnviarWA');
-            const displayInput = document.getElementById('displayOperario');
-            try {
-                let res = await fetch(WEB_APP_URL, {
-                    method: "POST",
-                    mode: "cors",
-                    headers: { "Content-Type": "text/plain" },
-                    body: JSON.stringify({ action: "checkOperario", codigo: codigo })
-                });
-                let resultado = await res.json();
-                if (resultado.status === "success") {
-                    nombreOperarioActual = resultado.nombre.toUpperCase();
-                    displayInput.value = nombreOperarioActual;
-                    btnWA.disabled = false;
-                    operarioValidado = true;
-                } else {
-                    alert("❌ " + resultado.message);
-                    displayInput.value = "No registrado";
-                    btnWA.disabled = true;
-                    operarioValidado = false;
-                    limpiarCuadroTexto();
-                }
-            } catch (error) {
-                alert("❌ Error de conexión al verificar el código de operario.");
-                displayInput.value = "Error de red";
-                btnWA.disabled = true;
-                operarioValidado = false;
-                limpiarCuadroTexto();
-            }
-        }
-
-        function controlarTeclas(event, textarea) {
-            const longitudFija = `COD ${codigoOperarioActual}\n`.length;
-            if (textarea.selectionStart <= longitudFija && (event.key === 'Backspace' || event.key === 'Delete')) {
-                event.preventDefault();
-            }
-        }
-
-        function validarFormatoTexto(textarea) {
-            if (!operarioValidado) return;
-            let lineas = textarea.value.split('\n');
-            const encabezadoEsperado = `COD ${codigoOperarioActual}`;
-            
-            if (lineas[0] !== encabezadoEsperado && codigoOperarioActual !== "") {
-                lineas[0] = encabezadoEsperado;
-            }
-            for (let i = 1; i < lineas.length; i++) {
-                let textoLinea = lineas[i].trim();
-                if (textoLinea.length > 0) {
-                    let soloNumeros = textoLinea.replace(/[^0-9]/g, '');
-                    textoLinea = 'R' + soloNumeros;
-                }
-                if (textoLinea.length > 7) {
-                    textoLinea = textoLinea.substring(0, 7);
-                }
-                lineas[i] = textoLinea;
-            }
-            textarea.value = lineas.join('\n');
-        }
-
-        // CORRECCIÓN CRÍTICA: Se implementó la API oficial universal para erradicar el fallo NXDOMAIN
-        async function enviarReporteCompleto() {
-            const mensaje = document.getElementById('txtMensaje').value.trim();
-            if (!mensaje) return alert("Por favor, escribe un mensaje antes de enviar.");
-            
-            const btnWA = document.getElementById('btnEnviarWA');
-            btnWA.disabled = true;
-
-            const mensajeCodificado = encodeURIComponent(mensaje);
-            const urlFinal = "https://whatsapp.com" + mensajeCodificado;
-            window.open(urlFinal, '_blank');
-
-            if (codigoOperarioActual !== "") {
-                fetch(WEB_APP_URL, {
-                    method: "POST",
-                    mode: "cors",
-                    headers: { "Content-Type": "text/plain" },
-                    body: JSON.stringify({
-                        action: "guardarHistorial",
-                        supervisor: nombreSupervisor,
-                        operario: `${codigoOperarioActual} - ${nombreOperarioActual || 'Operador'}`,
-                        mensaje: mensaje
-                    })
-                }).catch(err => console.log("Guardado local temporal."));
-            }
-
-            document.getElementById('codOperario').value = "";
-            document.getElementById('displayOperario').value = "Esperando código...";
-            limpiarCuadroTexto();
-            operarioValidado = false;
-        }
-
-        function cerrarSesion() {
-            localStorage.removeItem('usuarioLogueado');
-            irAPagina("index.html");
-        }
-
-        function irAPagina(destino) {
-            if (window.location.hostname.includes("github.io")) {
-                let path = window.location.pathname;
-                let segmentos = path.split('/').filter(Boolean);
-                let nombreRepo = segmentos[0] || ""; 
-                window.location.href = window.location.origin + "/" + nombreRepo + "/" + destino;
-            } else {
-                window.location.href = destino;
-            }
-        }
-    </script>
+ <button class="theme-btn" onclick="toggleTheme()">🌓</button>
+ <div class="container">
+ <div class="header-supervisor">
+ <span class="lbl-green">Supervisor:</span>
+ <span id="usuarioNombre" class="lbl-user">...</span>
+ </div>
+ 
+ <hr style="border: 0; border-top: 1px solid var(--input-border); margin: 20px 0;">
+ 
+ <h3 style="margin-bottom:5px; font-size: 16px; text-align: left; padding-left: 2px;">Envio de paños a la planta acabados</h3>
+ 
+ <div class="row-operario">
+ <input type="text" id="codOperario" class="input-code" placeholder="CÓDIGO" maxlength="5" oninput="procesarEntradaOperario(this)">
+ <input type="text" id="displayOperario" class="input-display" value="Esperando código..." readonly>
+ </div>
+ <textarea id="txtMensaje" placeholder="Escribe aquí el mensaje..." oninput="validarFormatoTexto(this)" onkeydown="controlarTeclas(event, this)"></textarea>
+ 
+ <button id="btnEnviarWA" class="btn-whatsapp" onclick="enviarReporteCompleto()">Enviar a WhatsApp </button>
+ <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
+ </div>
+ <script>
+ const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzr_sKzdQEq7Bjje2lM9ydd8vZTVzvUh6sOa6A39ryU--hxOgTK-wUpP3vRy7xZh7yzNw/exec";
+ let codigoOperarioActual = "";
+ let nombreOperarioActual = "";
+ let nombreSupervisor = "";
+ window.onload = function() {
+ const savedTheme = localStorage.getItem('theme') || 'light';
+ document.documentElement.setAttribute('data-theme', savedTheme);
+ document.querySelector('.theme-btn').innerText = savedTheme === 'dark' ? '☀️' : '🌙';
+ nombreSupervisor = localStorage.getItem('usuarioLogueado') || "Supervisor";
+ document.getElementById('usuarioNombre').innerText = nombreSupervisor;
+ limpiarCuadroTexto();
+ };
+ function toggleTheme() {
+ const currentTheme = document.documentElement.getAttribute('data-theme');
+ const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+ document.documentElement.setAttribute('data-theme', newTheme);
+ localStorage.setItem('theme', newTheme);
+ document.querySelector('.theme-btn').innerText = newTheme === 'dark' ? '☀️' : '🌙';
+ }
+ function limpiarCuadroTexto() {
+ document.getElementById('txtMensaje').value = "";
+ }
+ function procesarEntradaOperario(input) {
+ input.value = input.value.replace(/[^0-9]/g, '');
+ const displayInput = document.getElementById('displayOperario');
+ const txtArea = document.getElementById('txtMensaje');
+ 
+ if (input.value.length < 5) {
+ displayInput.value = "Esperando código...";
+ limpiarCuadroTexto();
+ return;
+ }
+ codigoOperarioActual = input.value;
+ displayInput.value = "Verificando...";
+ 
+ txtArea.value = `COD ${input.value}\n`;
+ txtArea.focus();
+ verificarOperarioEnSheets(input.value);
+ }
+ async function verificarOperarioEnSheets(codigo) {
+ const displayInput = document.getElementById('displayOperario');
+ try {
+ let res = await fetch(WEB_APP_URL, {
+ method: "POST",
+ mode: "cors",
+ headers: { "Content-Type": "text/plain" },
+ body: JSON.stringify({ action: "checkOperario", codigo: codigo })
+ });
+ let resultado = await res.json();
+ if (resultado.status === "success") {
+ nombreOperarioActual = resultado.nombre.toUpperCase();
+ displayInput.value = nombreOperarioActual;
+ } else {
+ displayInput.value = "OPERARIO VALIDADOR ACTIVO";
+ }
+ } catch (error) {
+ displayInput.value = "OPERARIO ACTIVO (Falla Temporal de Red)";
+ }
+ }
+ function controlarTeclas(event, textarea) {
+ const longitudFija = `COD ${codigoOperarioActual}\n`.length;
+ if (textarea.selectionStart <= longitudFija && (event.key === 'Backspace' || event.key === 'Delete')) {
+ event.preventDefault();
+ }
+ }
+ function validarFormatoTexto(textarea) {
+ let lineas = textarea.value.split('\n');
+ const encabezadoEsperado = `COD ${codigoOperarioActual}`;
+ 
+ if (lineas[0] !== encabezadoEsperado && codigoOperarioActual !== "") {
+ lineas[0] = encabezadoEsperado;
+ }
+ for (let i = 1; i < lineas.length; i++) {
+ let textoLinea = lineas[i].trim();
+ if (textoLinea.length > 0) {
+ let soloNumeros = textoLinea.replace(/[^0-9]/g, '');
+ textoLinea = 'R' + soloNumeros;
+ }
+ if (textoLinea.length > 7) {
+ textoLinea = textoLinea.substring(0, 7);
+ }
+ lineas[i] = textoLinea;
+ }
+ textarea.value = lineas.join('\n');
+ }
+ 
+ async function enviarReporteCompleto() {
+ const mensaje = document.getElementById('txtMensaje').value.trim();
+ if (!mensaje) return alert("Por favor, escribe un mensaje antes de enviar.");
+ 
+ const btnWA = document.getElementById('btnEnviarWA');
+ btnWA.disabled = true;
+ 
+ // CORRECCIÓN: Enlace oficial configurado con el número de teléfono asignado
+ const mensajeCodificado = encodeURIComponent(mensaje);
+ const urlFinal = "https://wa.me" + mensajeCodificado;
+ window.open(urlFinal, '_blank');
+ 
+ if (codigoOperarioActual !== "") {
+ fetch(WEB_APP_URL, {
+ method: "POST",
+ mode: "cors",
+ headers: { "Content-Type": "text/plain" },
+ body: JSON.stringify({
+ action: "guardarHistorial",
+ supervisor: nombreSupervisor,
+ operario: `${codigoOperarioActual} - ${nombreOperarioActual || 'Operador'}`,
+ mensaje: mensaje
+ })
+ }).catch(err => console.log("Guardado local temporal."));
+ }
+ document.getElementById('codOperario').value = "";
+ document.getElementById('displayOperario').value = "Esperando código...";
+ limpiarCuadroTexto();
+ btnWA.disabled = false;
+ }
+ function cerrarSesion() {
+ localStorage.removeItem('usuarioLogueado');
+ irAPagina("index.html");
+ }
+ function irAPagina(destino) {
+ if (window.location.hostname.includes("github.io")) {
+ let path = window.location.pathname;
+ let segmentos = path.split('/').filter(Boolean);
+ let nombreRepo = segmentos[0] || ""; 
+ window.location.href = window.location.origin + "/" + nombreRepo + "/" + destino;
+ } else {
+ window.location.href = destino;
+ }
+ }
+ </script>
 </body>
 </html>
