@@ -50,7 +50,7 @@
             
             if (!nombreUsuario) {
                 alert("Acceso denegado. Por favor inicia sesión.");
-                window.location.href = "index.htm";
+                irAPagina("index.html");
             } else {
                 document.getElementById('usuarioNombre').innerText = nombreUsuario;
                 document.getElementById('txtMensaje').value = "¡Hola! Soy " + nombreUsuario + " y acabo de iniciar sesión en el sistema.";
@@ -61,26 +61,31 @@
             const mensaje = document.getElementById('txtMensaje').value.trim();
             if (!mensaje) return alert("Por favor, escribe un mensaje antes de enviar.");
             
-            // 1. Codificamos el texto de forma segura
             const mensajeCodificado = encodeURIComponent(mensaje);
-            
-            // 2. Definimos las partes por separado para que el navegador NO las junte mal
             const protocolo = "https://";
             const dominio = "wa.me";
             const telefono = "51946068651";
             
-            // 3. Unimos las piezas asegurando las diagonales obligatorias con Template Literals de JS
             const urlFinal = `${protocolo}${dominio}/${telefono}?text=${mensajeCodificado}`;
-            
-            // 4. Abrimos de forma limpia
             window.open(urlFinal, '_blank');
         }
 
-       function cerrarSesion() {
-    localStorage.removeItem('usuarioLogueado');
-    // Forzamos la redirección directa al archivo index.html sin importar la subcarpeta
-    window.location.href = "index.html";
-}
+        function cerrarSesion() {
+            localStorage.removeItem('usuarioLogueado');
+            irAPagina("index.html");
+        }
+
+        // Función inteligente para evitar errores 404 al regresar al login
+        function irAPagina(destino) {
+            let path = window.location.pathname;
+            if (window.location.hostname.includes("github.io")) {
+                let segmentos = path.split('/').filter(Boolean);
+                let nombreRepo = segmentos[0] || "";
+                window.location.href = window.location.origin + "/" + nombreRepo + "/" + destino;
+            } else {
+                window.location.href = destino;
+            }
+        }
     </script>
 </body>
 </html>
