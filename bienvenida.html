@@ -185,9 +185,8 @@
             <input type="text" id="displayOperario" class="input-display" value="Esperando código..." readonly>
         </div>
 
-        <!-- Evento oninput y onkeydown agregados para controlar las líneas en tiempo real -->
         <textarea id="txtMensaje" placeholder="Escribe aquí el mensaje..." oninput="validarFormatoTexto(this)" onkeydown="controlarTeclas(event, this)"></textarea>
-        <button id="btnEnviarWA" class="btn-whatsapp" onclick="enviarWhatsAppInmune()" disabled>Enviar a WhatsApp 💬</button>
+        <button id="btnEnviarWA" class="btn-whatsapp" onclick="enviarReporteCompleto()" disabled>Enviar a WhatsApp 💬</button>
 
         <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
     </div>
@@ -197,6 +196,7 @@
         let operarioValidado = false;
         let nombreSupervisor = "";
         let codigoOperarioActual = "";
+        let nombreOperarioActual = "";
 
         window.onload = function() {
             const savedTheme = localStorage.getItem('theme') || 'light';
@@ -225,8 +225,12 @@
             document.getElementById('txtMensaje').value = "";
         }
 
+        function SampleInputFormat(input) {
+            input.value = input.value.replace(/[^0-9]/g, '');
+        }
+
         function procesarEntradaOperario(input) {
-            input.value = input.value.replace(/[^0-9]/g, ''); 
+            SampleInputFormat(input);
             const btnWA = document.getElementById('btnEnviarWA');
             const displayInput = document.getElementById('displayOperario');
             
@@ -261,9 +265,9 @@
                     btnWA.disabled = false; 
                     operarioValidado = true;
                     codigoOperarioActual = codigo;
-                    displayInput.value = resultado.nombre.toUpperCase();
+                    nombreOperarioActual = resultado.nombre.toUpperCase();
+                    displayInput.value = nombreOperarioActual;
                     
-                    // REQUERIMIENTO: Inserta "COD 84831", genera un salto de línea y posiciona el cursor abajo
                     txtArea.value = `COD ${codigo}\n`;
                     txtArea.focus();
                 } else {
@@ -283,7 +287,6 @@
             }
         }
 
-        // Evita que borren el "COD XXXXX" de la primera línea usando la tecla de retroceso
         function controlarTeclas(event, textarea) {
             const longitudFija = `COD ${codigoOperarioActual}\n`.length;
             if (textarea.selectionStart <= longitudFija && (event.key === 'Backspace' || event.key === 'Delete')) {
@@ -291,7 +294,6 @@
             }
         }
 
-        // NUEVO REQUERIMIENTO: Filtro estricto para las líneas siguientes (Forzar formato "R" + 6 números)
         function validarFormatoTexto(textarea) {
             if (!operarioValidado) {
                 textarea.value = "";
@@ -301,26 +303,21 @@
             let lineas = textarea.value.split('\n');
             const encabezadoEsperado = `COD ${codigoOperarioActual}`;
             
-            // Asegurar que la primera línea no sea alterada de ninguna forma
             if (lineas[0] !== encabezadoEsperado) {
                 lineas[0] = encabezadoEsperado;
             }
 
-            // Validar las líneas escritas por el usuario
             for (let i = 1; i < lineas.length; i++) {
                 let textoLinea = lineas[i];
 
                 if (textoLinea.length > 0) {
-                    // Forzar que el primer carácter sea siempre "R" en mayúscula
-                    if (textoLinea[0].toUpperCase() !== 'R') {
+                    if (textoLinea.substring(0,1).toUpperCase() !== 'R') {
                         textoLinea = 'R' + textoLinea.replace(/[^0-9]/g, '');
                     } else {
-                        // Mantener la R inicial y limpiar todo lo demás para que sean solo números
                         textoLinea = 'R' + textoLinea.substring(1).replace(/[^0-9]/g, '');
                     }
                 }
 
-                // Forzar restricción máxima estricta de 7 caracteres por línea (R + 6 números)
                 if (textoLinea.length > 7) {
                     textoLinea = textoLinea.substring(0, 7);
                 }
@@ -328,18 +325,46 @@
                 lineas[i] = textoLinea;
             }
 
-            // Reconstruir el texto dentro del área
             textarea.value = lineas.join('\n');
         }
 
-        function enviarWhatsAppInmune() {
+        async function enviarReporteCompleto() {
             if (!operarioValidado) return alert("Primero debes ingresar un código de operario válido.");
             const mensaje = document.getElementById('txtMensaje').value.trim();
             if (!mensaje) return alert("Por favor, escribe un mensaje antes de enviar.");
             
+            const btnWA = document.getElementById('btnEnviarWA');
+            btnWA.disabled = true;
+
+            try {
+                let payloadHistorial = {
+                    action: "guardarHistorial",
+                    supervisor: nombreSupervisor,
+                    operario: `${codigoOperarioActual} - ${nombreOperarioActual}`,
+                    mensaje: mensaje
+                };
+
+                await fetch(WEB_APP_URL, {
+                    method: "POST",
+                    mode: "cors",
+                    headers: { "Content-Type": "text/plain" },
+                    body: JSON.stringify(payloadHistorial)
+                });
+            } catch (err) {
+                console.error("Error en bitácora.", err);
+            }
+
             const mensajeCodificado = encodeURIComponent(mensaje);
-            const urlFinal = `https://wa.me{mensajeCodificado}`;
+            const protocolo = "https://";
+            const dominio = "wa.me";
+            const urlFinal = `${protocolo}${dominio}/51946068651?text=${mensajeCodificado}`;
+            
             window.open(urlFinal, '_blank');
+
+            document.getElementById('codOperario').value = "";
+            document.getElementById('displayOperario').value = "Esperando código...";
+            limpiarCuadroTexto();
+            operarioValidado = false;
         }
 
         function cerrarSesion() {
@@ -348,10 +373,10 @@
         }
 
         function irAPagina(destino) {
-            let path = window.location.pathname;
             if (window.location.hostname.includes("github.io")) {
+                let path = window.location.pathname;
                 let segmentos = path.split('/').filter(Boolean);
-                let nombreRepo = segmentos || "";
+                let nombreRepo = segmentos[0] || ""; 
                 window.location.href = window.location.origin + "/" + nombreRepo + "/" + destino;
             } else {
                 window.location.href = destino;
