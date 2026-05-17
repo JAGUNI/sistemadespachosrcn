@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Acceso</title>
+    <style>
+        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f4f9; margin: 0; }
+        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 320px; text-align: center; }
+        
+        input[type="text"]:not(.input-group input) { 
+            width: 97%; 
+            padding: 10px; 
+            margin: 10px 0; 
+            border: 1px solid #ccc; 
+            border-radius: 4px; 
+            box-sizing: border-box;
+        }
+        
+        .input-group, .password-group {
+            display: flex;
+            align-items: center;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin: 10px 0;
+            width: 97%;
+            box-sizing: border-box;
+        }
+        .input-group input, .password-group input {
+            flex: 1;
+            border: none !important;
+            margin: 0 !important;
+            padding: 10px;
+            outline: none;
+            background: transparent;
+            width: 100%;
+        }
+        .input-group select {
+            border: none;
+            background: transparent;
+            padding: 10px 5px;
+            outline: none;
+            color: #555;
+            font-size: 14px;
+            cursor: pointer;
+            border-left: 1px solid #eee;
+        }
+        
+        .toggle-password {
+            background: none;
+            border: none;
+            color: #777;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 0 10px;
+            margin: 0;
+            width: auto;
+        }
+        .toggle-password:hover { background: none; color: #333; }
+
+        button:not(.toggle-password) { width: 97%; padding: 10px; background: #007BFF; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 10px; }
+        button:not(.toggle-password):hover { background: #0056b3; }
+        .toggle-link { margin-top: 15px; color: #555; font-size: 14px; cursor: pointer; text-decoration: underline; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Formulario Login -->
+        <div id="loginForm">
+            <h2>Iniciar Sesión</h2>
+            <input type="text" id="loginUsuario" placeholder="Usuario" required>
+            
+            <div class="password-group">
+                <input type="password" id="loginPass" placeholder="Contraseña" required>
+                <button type="button" class="toggle-password" onclick="alternarVisibilidad('loginPass', this)">👁️</button>
+            </div>
+            
+            <button onclick="ejecutarAccion('login')">Ingresar</button>
+            <div class="toggle-link" onclick="cambiarFormulario(false)">¿No tienes cuenta? Regístrate</div>
+        </div>
+
+        <!-- Formulario Registro -->
+        <div id="registerForm" class="hidden">
+            <h2>Registrarse</h2>
+            <input type="text" id="regUsuario" placeholder="Usuario" required>
+            <div class="input-group">
+                <input type="text" id="regEmailUser" placeholder="Correo Electrónico" required>
+                <select id="regEmailDomain">
+                    <option value="@gmail.com">@gmail.com</option>
+                    <option value="@uni.pe">@uni.pe</option>
+                    <option value="@fisanet.com.pe">@fisanet.com.pe</option>
+                    <option value="@hotmail.com">@hotmail.com</option>
+                </select>
+            </div>
+            
+            <div class="password-group">
+                <input type="password" id="regPass" placeholder="Contraseña" required>
+                <button type="button" class="toggle-password" onclick="alternarVisibilidad('regPass', this)">👁️</button>
+            </div>
+            
+            <button onclick="ejecutarAccion('register')">Registrarme</button>
+            <div class="toggle-link" onclick="cambiarFormulario(true)">¿Ya tienes cuenta? Inicia sesión</div>
+        </div>
+    </div>
+
+    <script>
+        // PEGA AQUÍ TU URL COPIADA DE GOOGLE APPS SCRIPT
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzDam17LaZlmJWX1UlTPYDsq5Vh9oL_BWjUXKIolpx_hTyK6DOs55vMCr3O5QBx0CYOOg/exec";
+
+        function cambiarFormulario(mostrarLogin) {
+            document.getElementById('loginForm').classList.toggle('hidden', !mostrarLogin);
+            document.getElementById('registerForm').classList.toggle('hidden', mostrarLogin);
+            restablecerContrasenas();
+            limpiarCampos();
+        }
+
+        function alternarVisibilidad(inputId, boton) {
+            const input = document.getElementById(inputId);
+            if (input.type === "password") {
+                input.type = "text";
+                boton.innerText = "🙈";
+            } else {
+                input.type = "password";
+                boton.innerText = "👁️";
+            }
+        }
+
+        function restablecerContrasenas() {
+            document.getElementById('loginPass').type = "password";
+            document.getElementById('regPass').type = "password";
+            document.querySelectorAll('.toggle-password').forEach(btn => btn.innerText = "👁️");
+        }
+
+        function limpiarCampos() {
+            document.getElementById('loginUsuario').value = "";
+            document.getElementById('loginPass').value = "";
+            document.getElementById('regUsuario').value = "";
+            document.getElementById('regEmailUser').value = "";
+            document.getElementById('regPass').value = "";
+        }
+
+        function ejecutarAccion(action) {
+            let payload = { action: action };
+
+            if (action === 'register') {
+                payload.usuario = document.getElementById('regUsuario').value.trim();
+                let emailUser = document.getElementById('regEmailUser').value.trim();
+                let emailDomain = document.getElementById('regEmailDomain').value;
+                payload.correo = emailUser ? (emailUser + emailDomain) : "";
+                payload.password = document.getElementById('regPass').value;
+                
+                if(!payload.usuario || !emailUser || !payload.password) return alert("Completa todos los campos");
+            } else {
+                payload.usuario = document.getElementById('loginUsuario').value.trim();
+                payload.password = document.getElementById('loginPass').value;
+                
+                if(!payload.usuario || !payload.password) return alert("Completa todos los campos");
+            }
+
+            const callbackName = 'googleSheetsCallback';
+            window[callbackName] = function(resultado) {
+                if (resultado.status === "success") {
+                    if (action === 'register') {
+                        alert(resultado.message);
+                        cambiarFormulario(true);
+                    } else {
+                        // Guardamos el nombre en el navegador y redirigimos a la otra ventana
+                        localStorage.setItem('usuarioLogueado', resultado.name);
+                        window.location.href = "./bienvenida.html";
+                    }
+                } else {
+                    alert(resultado.message);
+                }
+                document.body.removeChild(script);
+                delete window[callbackName];
+            };
+
+            let urlConDatos = WEB_APP_URL + "?callback=" + callbackName + "&data=" + encodeURIComponent(JSON.stringify(payload));
+            
+            var script = document.createElement('script');
+            script.src = urlConDatos;
+            script.onerror = function() {
+                alert("Error de conexión con la base de datos.");
+            };
+            document.body.appendChild(script);
+        }
+    </script>
+</body>
+</html>

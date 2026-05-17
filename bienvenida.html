@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenida</title>
+    <style>
+        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f4f9; margin: 0; }
+        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 340px; text-align: center; }
+        
+        textarea {
+            width: 97%;
+            height: 80px;
+            padding: 10px;
+            margin-top: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            resize: none;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        
+        button { width: 97%; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 10px; }
+        .btn-whatsapp { background: #25D366; color: white; }
+        .btn-whatsapp:hover { background: #128C7E; }
+        .btn-logout { background: #dc3545; color: white; margin-top: 20px; }
+        .btn-logout:hover { background: #bd2130; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1 style="color: #28a745;">¡Bienvenido/a!</h1>
+        <h2 id="usuarioNombre">Cargando...</h2>
+        <p>Has ingresado correctamente al sistema.</p>
+        
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+        
+        <h3>Enviar Mensaje por WhatsApp</h3>
+        <textarea id="txtMensaje" placeholder="Escribe aquí el mensaje..."></textarea>
+        
+        <button class="btn-whatsapp" onclick="enviarWhatsAppInmune()">Enviar a WhatsApp 💬</button>
+
+        <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
+    </div>
+
+    <script>
+        window.onload = function() {
+            const nombreUsuario = localStorage.getItem('usuarioLogueado');
+            
+            if (!nombreUsuario) {
+                alert("Acceso denegado. Por favor inicia sesión.");
+                window.location.href = "./index.htm";
+            } else {
+                document.getElementById('usuarioNombre').innerText = nombreUsuario;
+                document.getElementById('txtMensaje').value = "¡Hola! Soy " + nombreUsuario + " y acabo de iniciar sesión en el sistema.";
+            }
+        };
+
+        function enviarWhatsAppInmune() {
+            const mensaje = document.getElementById('txtMensaje').value.trim();
+            if (!mensaje) return alert("Por favor, escribe un mensaje antes de enviar.");
+            
+            // 1. Codificamos el texto de forma segura
+            const mensajeCodificado = encodeURIComponent(mensaje);
+            
+            // 2. Definimos las partes por separado para que el navegador NO las junte mal
+            const protocolo = "https://";
+            const dominio = "wa.me";
+            const telefono = "51946068651";
+            
+            // 3. Unimos las piezas asegurando las diagonales obligatorias con Template Literals de JS
+            const urlFinal = `${protocolo}${dominio}/${telefono}?text=${mensajeCodificado}`;
+            
+            // 4. Abrimos de forma limpia
+            window.open(urlFinal, '_blank');
+        }
+
+        function cerrarSesion() {
+            localStorage.removeItem('usuarioLogueado');
+            window.location.href = "./index.htm";
+        }
+    </script>
+</body>
+</html>
