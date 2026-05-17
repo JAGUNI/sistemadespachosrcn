@@ -107,8 +107,7 @@
     </div>
 
     <script>
-        // PEGA AQUÍ TU URL COPIADA DE GOOGLE APPS SCRIPT
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzDam17LaZlmJWX1UlTPYDsq5Vh9oL_BWjUXKIolpx_hTyK6DOs55vMCr3O5QBx0CYOOg/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxHvVEwyjXpPdPcyGa13EGTvFZw4TuQ_bEj8CFmmF-YW0jT90liRE2elAGaR48metjc0A/exec";
 
         function cambiarFormulario(mostrarLogin) {
             document.getElementById('loginForm').classList.toggle('hidden', !mostrarLogin);
@@ -142,61 +141,57 @@
             document.getElementById('regPass').value = "";
         }
 
-    function ejecutarAccion(action) {
-    let payload = { action: action };
+        function ejecutarAccion(action) {
+            let payload = { action: action };
 
-    if (action === 'register') {
-        payload.usuario = document.getElementById('regUsuario').value.trim();
-        let emailUser = document.getElementById('regEmailUser').value.trim();
-        let emailDomain = document.getElementById('regEmailDomain').value;
-        payload.correo = emailUser ? (emailUser + emailDomain) : "";
-        payload.password = document.getElementById('regPass').value;
-        
-        if(!payload.usuario || !emailUser || !payload.password) return alert("Completa todos los campos");
-    } else {
-        payload.usuario = document.getElementById('loginUsuario').value.trim();
-        payload.password = document.getElementById('loginPass').value;
-        
-        if(!payload.usuario || !payload.password) return alert("Completa todos los campos");
-    }
-
-    // Nombre de la función puente para saltar la seguridad CORS de GitHub
-    const callbackName = 'googleSheetsCallback';
-    
-    window[callbackName] = function(resultado) {
-        if (resultado.status === "success") {
             if (action === 'register') {
-                alert(resultado.message);
-                cambiarFormulario(true);
+                payload.usuario = document.getElementById('regUsuario').value.trim();
+                let emailUser = document.getElementById('regEmailUser').value.trim();
+                let emailDomain = document.getElementById('regEmailDomain').value;
+                payload.correo = emailUser ? (emailUser + emailDomain) : "";
+                payload.password = document.getElementById('regPass').value;
+                
+                if(!payload.usuario || !emailUser || !payload.password) return alert("Completa todos los campos");
             } else {
-                localStorage.setItem('usuarioLogueado', resultado.name);
-                window.location.href = "./bienvenida.html"; // Ruta relativa para GitHub
+                payload.usuario = document.getElementById('loginUsuario').value.trim();
+                payload.password = document.getElementById('loginPass').value;
+                
+                if(!payload.usuario || !payload.password) return alert("Completa todos los campos");
             }
-        } else {
-            alert(resultado.message);
-        }
-        // Limpieza del script inyectado
-        if (document.getElementById('jsonpScript')) {
-            document.body.removeChild(document.getElementById('jsonpScript'));
-        }
-        delete window[callbackName];
-    };
 
-    // Encriptamos los datos y los mandamos usando una etiqueta de script dinámica
-    let urlConDatos = WEB_APP_URL + "?callback=" + callbackName + "&data=" + encodeURIComponent(JSON.stringify(payload));
-    
-    // Eliminar script anterior si quedó colgado
-    let viejoScript = document.getElementById('jsonpScript');
-    if (viejoScript) viejoScript.remove();
+            const callbackName = 'googleSheetsCallback';
+            
+            window[callbackName] = function(resultado) {
+                if (resultado.status === "success") {
+                    if (action === 'register') {
+                        alert(resultado.message);
+                        cambiarFormulario(true);
+                    } else {
+                        localStorage.setItem('usuarioLogueado', resultado.name);
+                        window.location.href = "./bienvenida.html";
+                    }
+                } else {
+                    alert(resultado.message);
+                }
+                if (document.getElementById('jsonpScript')) {
+                    document.body.removeChild(document.getElementById('jsonpScript'));
+                }
+                delete window[callbackName];
+            };
 
-    var script = document.createElement('script');
-    script.id = 'jsonpScript';
-    script.src = urlConDatos;
-    script.onerror = function() {
-        alert("Error de conexión. Asegúrate de haber publicado tu Google Apps Script como 'Nueva versión' y con acceso para 'Cualquiera'.");
-    };
-    document.body.appendChild(script);
-}
+            let urlConDatos = WEB_APP_URL + "?callback=" + callbackName + "&data=" + encodeURIComponent(JSON.stringify(payload));
+            
+            let viejoScript = document.getElementById('jsonpScript');
+            if (viejoScript) viejoScript.remove();
+
+            var script = document.createElement('script');
+            script.id = 'jsonpScript';
+            script.src = urlConDatos;
+            script.onerror = function() {
+                alert("Error de conexión. Asegúrate de haber publicado tu Google Apps Script como 'Nueva versión' y con acceso para 'Cualquiera'.");
+            };
+            document.body.appendChild(script);
+        }
     </script>
 </body>
-</html> 
+</html>
