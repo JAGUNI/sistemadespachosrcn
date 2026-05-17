@@ -76,10 +76,11 @@
             window.open(urlFinal, '_blank');
         }
 
-        function cerrarSesion() {
-            localStorage.removeItem('usuarioLogueado');
-            window.location.href = "index.htm";
-        }
+       function cerrarSesion() {
+    localStorage.removeItem('usuarioLogueado');
+    // Forzamos la redirección directa al archivo index.html sin importar la subcarpeta
+    window.location.href = "index.html";
+}
     </script>
 </body>
 </html>
