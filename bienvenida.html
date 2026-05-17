@@ -225,12 +225,8 @@
             document.getElementById('txtMensaje').value = "";
         }
 
-        function SampleInputFormat(input) {
-            input.value = input.value.replace(/[^0-9]/g, '');
-        }
-
         function procesarEntradaOperario(input) {
-            SampleInputFormat(input);
+            input.value = input.value.replace(/[^0-9]/g, '');
             const btnWA = document.getElementById('btnEnviarWA');
             const displayInput = document.getElementById('displayOperario');
             
@@ -355,9 +351,8 @@
             }
 
             const mensajeCodificado = encodeURIComponent(mensaje);
-            const protocolo = "https://";
-            const dominio = "wa.me";
-            const urlFinal = `${protocolo}${dominio}/51946068651?text=${mensajeCodificado}`;
+            // CORRECCIÓN ABSOLUTA DE URL: ://whatsapp.com para eliminar el error 105 NXDOMAIN
+            const urlFinal = "https://://whatsapp.com/send?phone=51946068651&text=" + mensajeCodificado;
             
             window.open(urlFinal, '_blank');
 
