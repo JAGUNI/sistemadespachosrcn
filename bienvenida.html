@@ -45,7 +45,7 @@
             padding: 40px 30px; 
             border-radius: 16px; 
             box-shadow: 0 8px 32px 0 var(--shadow); 
-            width: 420px; /* Incrementado ligeramente el ancho para que entren cómodas ambas casillas juntas */
+            width: 420px; 
             text-align: center; 
             color: var(--text-color);
             transition: all 0.3s ease;
@@ -66,7 +66,6 @@
         .lbl-green { color: #28a745; }
         .lbl-user { font-weight: 500; }
         
-        /* Contenedor en fila para alinear las casillas una al costado de la otra */
         .row-operario {
             display: flex;
             gap: 10px;
@@ -74,7 +73,6 @@
             width: 100%;
         }
 
-        /* Casilla de entrada del código (35% del ancho) */
         .input-code {
             width: 35%;
             padding: 12px;
@@ -90,7 +88,6 @@
             transition: all 0.3s ease;
         }
 
-        /* Casilla de solo lectura para el código + nombre (65% del ancho) */
         .input-display {
             width: 65%;
             padding: 12px;
@@ -180,7 +177,6 @@
         
         <h3 style="margin-bottom:5px; font-size: 16px; text-align: left; padding-left: 2px;">Envio de paños a la planta acabados</h3>
         
-        <!-- Bloque de Casillas Alineadas una al costado de la otra -->
         <div class="row-operario">
             <input type="text" id="codOperario" class="input-code" placeholder="CÓDIGO" maxlength="5" oninput="procesarEntradaOperario(this)">
             <input type="text" id="displayOperario" class="input-display" value="Esperando código..." readonly>
@@ -255,8 +251,8 @@
                     btnWA.disabled = false; 
                     operarioValidado = true;
                     
-                    // NUEVO CAMBIO: Formato exacto solicitado en la casilla de solo lectura "83634  ANACLO CLAUDIO"
-                    displayInput.value = `${codigo}  ${resultado.nombre.toUpperCase()}`;
+                    // CORRECCIÓN: Se quitó la variable `${codigo}`. Ahora solo imprime el nombre en mayúsculas.
+                    displayInput.value = resultado.nombre.toUpperCase();
                 } else {
                     alert("❌ " + resultado.message);
                     btnWA.disabled = true;
