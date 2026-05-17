@@ -142,51 +142,61 @@
             document.getElementById('regPass').value = "";
         }
 
-        function ejecutarAccion(action) {
-            let payload = { action: action };
+    function ejecutarAccion(action) {
+    let payload = { action: action };
 
+    if (action === 'register') {
+        payload.usuario = document.getElementById('regUsuario').value.trim();
+        let emailUser = document.getElementById('regEmailUser').value.trim();
+        let emailDomain = document.getElementById('regEmailDomain').value;
+        payload.correo = emailUser ? (emailUser + emailDomain) : "";
+        payload.password = document.getElementById('regPass').value;
+        
+        if(!payload.usuario || !emailUser || !payload.password) return alert("Completa todos los campos");
+    } else {
+        payload.usuario = document.getElementById('loginUsuario').value.trim();
+        payload.password = document.getElementById('loginPass').value;
+        
+        if(!payload.usuario || !payload.password) return alert("Completa todos los campos");
+    }
+
+    // Nombre de la función puente para saltar la seguridad CORS de GitHub
+    const callbackName = 'googleSheetsCallback';
+    
+    window[callbackName] = function(resultado) {
+        if (resultado.status === "success") {
             if (action === 'register') {
-                payload.usuario = document.getElementById('regUsuario').value.trim();
-                let emailUser = document.getElementById('regEmailUser').value.trim();
-                let emailDomain = document.getElementById('regEmailDomain').value;
-                payload.correo = emailUser ? (emailUser + emailDomain) : "";
-                payload.password = document.getElementById('regPass').value;
-                
-                if(!payload.usuario || !emailUser || !payload.password) return alert("Completa todos los campos");
+                alert(resultado.message);
+                cambiarFormulario(true);
             } else {
-                payload.usuario = document.getElementById('loginUsuario').value.trim();
-                payload.password = document.getElementById('loginPass').value;
-                
-                if(!payload.usuario || !payload.password) return alert("Completa todos los campos");
+                localStorage.setItem('usuarioLogueado', resultado.name);
+                window.location.href = "./bienvenida.html"; // Ruta relativa para GitHub
             }
-
-            const callbackName = 'googleSheetsCallback';
-            window[callbackName] = function(resultado) {
-                if (resultado.status === "success") {
-                    if (action === 'register') {
-                        alert(resultado.message);
-                        cambiarFormulario(true);
-                    } else {
-                        // Guardamos el nombre en el navegador y redirigimos a la otra ventana
-                        localStorage.setItem('usuarioLogueado', resultado.name);
-                        window.location.href = "./bienvenida.html";
-                    }
-                } else {
-                    alert(resultado.message);
-                }
-                document.body.removeChild(script);
-                delete window[callbackName];
-            };
-
-            let urlConDatos = WEB_APP_URL + "?callback=" + callbackName + "&data=" + encodeURIComponent(JSON.stringify(payload));
-            
-            var script = document.createElement('script');
-            script.src = urlConDatos;
-            script.onerror = function() {
-                alert("Error de conexión con la base de datos.");
-            };
-            document.body.appendChild(script);
+        } else {
+            alert(resultado.message);
         }
+        // Limpieza del script inyectado
+        if (document.getElementById('jsonpScript')) {
+            document.body.removeChild(document.getElementById('jsonpScript'));
+        }
+        delete window[callbackName];
+    };
+
+    // Encriptamos los datos y los mandamos usando una etiqueta de script dinámica
+    let urlConDatos = WEB_APP_URL + "?callback=" + callbackName + "&data=" + encodeURIComponent(JSON.stringify(payload));
+    
+    // Eliminar script anterior si quedó colgado
+    let viejoScript = document.getElementById('jsonpScript');
+    if (viejoScript) viejoScript.remove();
+
+    var script = document.createElement('script');
+    script.id = 'jsonpScript';
+    script.src = urlConDatos;
+    script.onerror = function() {
+        alert("Error de conexión. Asegúrate de haber publicado tu Google Apps Script como 'Nueva versión' y con acceso para 'Cualquiera'.");
+    };
+    document.body.appendChild(script);
+}
     </script>
 </body>
 </html> 
