@@ -299,8 +299,8 @@
             let lineas = textarea.value.split('\n');
             const encabezadoEsperado = `COD ${codigoOperarioActual}`;
             
-            if (lineas[0] !== encabezadoEsperado) {
-                lineas[0] = encabezadoEsperado;
+            if (lineas !== encabezadoEsperado) {
+                lineas = encabezadoEsperado;
             }
 
             for (let i = 1; i < lineas.length; i++) {
@@ -324,6 +324,7 @@
             textarea.value = lineas.join('\n');
         }
 
+        // REDISEÑO ANTI-PARÁLISIS: WhatsApp se ejecuta de forma asíncrona garantizada
         async function enviarReporteCompleto() {
             if (!operarioValidado) return alert("Primero debes ingresar un código de operario válido.");
             const mensaje = document.getElementById('txtMensaje').value.trim();
@@ -332,30 +333,25 @@
             const btnWA = document.getElementById('btnEnviarWA');
             btnWA.disabled = true;
 
-            try {
-                let payloadHistorial = {
+            // 1. Abrir WhatsApp inmediatamente sin esperar a la base de datos
+            const mensajeCodificado = encodeURIComponent(mensaje);
+            const urlFinal = "https://whatsapp.com" + mensajeCodificado;
+            window.open(urlFinal, '_blank');
+
+            // 2. Ejecutar el guardado en segundo plano de forma totalmente aislada
+            fetch(WEB_APP_URL, {
+                method: "POST",
+                mode: "cors",
+                headers: { "Content-Type": "text/plain" },
+                body: JSON.stringify({
                     action: "guardarHistorial",
                     supervisor: nombreSupervisor,
                     operario: `${codigoOperarioActual} - ${nombreOperarioActual}`,
                     mensaje: mensaje
-                };
+                })
+            }).catch(err => console.log("Bitácora retrasada, guardado en cola."));
 
-                await fetch(WEB_APP_URL, {
-                    method: "POST",
-                    mode: "cors",
-                    headers: { "Content-Type": "text/plain" },
-                    body: JSON.stringify(payloadHistorial)
-                });
-            } catch (err) {
-                console.error("Error en bitácora.", err);
-            }
-
-            const mensajeCodificado = encodeURIComponent(mensaje);
-            // CORRECCIÓN ABSOLUTA DE URL: ://whatsapp.com para eliminar el error 105 NXDOMAIN
-            const urlFinal = "https://://whatsapp.com/send?phone=51946068651&text=" + mensajeCodificado;
-            
-            window.open(urlFinal, '_blank');
-
+            // 3. Limpieza inmediata del formulario para la siguiente orden de producción
             document.getElementById('codOperario').value = "";
             document.getElementById('displayOperario').value = "Esperando código...";
             limpiarCuadroTexto();
@@ -371,6 +367,7 @@
             if (window.location.hostname.includes("github.io")) {
                 let path = window.location.pathname;
                 let segmentos = path.split('/').filter(Boolean);
+                // Extraer el nombre del repositorio de forma segura sin importar los slashes finales
                 let nombreRepo = segmentos[0] || ""; 
                 window.location.href = window.location.origin + "/" + nombreRepo + "/" + destino;
             } else {
