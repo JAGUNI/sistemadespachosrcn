@@ -48,20 +48,19 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* Contenedor del encabezado solicitado */
         .header-supervisor {
             font-size: 24px;
             font-weight: bold;
             margin-top: 0;
-            margin-bottom: 5px;
+            margin-bottom: 20px; /* Ajustado el margen ya que quitamos el subtítulo */
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 8px; /* Espaciado regular entre elementos */
+            gap: 8px;
         }
 
         .lbl-green {
-            color: #28a745; /* Verde llamativo solicitado */
+            color: #28a745; 
         }
 
         .lbl-user {
@@ -130,16 +129,16 @@
     <button class="theme-btn" onclick="toggleTheme()">🌙</button>
 
     <div class="container">
-        <!-- Encabezado corregido según tu requerimiento -->
+        <!-- Encabezado con el Supervisor -->
         <div class="header-supervisor">
             <span class="lbl-green">Supervisor:</span>
             <span id="usuarioNombre" class="lbl-user">...</span>
         </div>
-        <p style="opacity: 0.8; margin-top: 0; margin-bottom: 20px; font-size: 14px;">Envio de paños a la planta acabados</p>
         
         <hr style="border: 0; border-top: 1px solid var(--input-border); margin: 20px 0;">
         
-        <h3 style="margin-bottom:10px; font-size: 16px;">Enviar Mensaje por WhatsApp</h3>
+        <!-- Texto modificado según tu requerimiento -->
+        <h3 style="margin-bottom:10px; font-size: 16px;">Envio de paños a la planta acabados</h3>
         <textarea id="txtMensaje" placeholder="Escribe aquí el mensaje..."></textarea>
         <button class="btn-whatsapp" onclick="enviarWhatsAppInmune()">Enviar a WhatsApp 💬</button>
 
