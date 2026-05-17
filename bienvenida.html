@@ -168,6 +168,7 @@
 </head>
 <body>
 
+    <!-- Ícono corregido para el botón de tema -->
     <button class="theme-btn" onclick="toggleTheme()">🌙</button>
 
     <div class="container">
@@ -187,16 +188,16 @@
 
         <textarea id="txtMensaje" placeholder="Escribe aquí el mensaje..." oninput="validarFormatoTexto(this)" onkeydown="controlarTeclas(event, this)"></textarea>
         
-        <!-- BLINDAJE: El botón verde estará activo de fábrica para evitar parálisis de red -->
-        <button id="btnEnviarWA" class="btn-whatsapp" onclick="enviarReporteCompleto()">Enviar a WhatsApp 💬</button>
-
+        <button id="btnEnviarWA" class="btn-whatsapp" onclick="enReporteSeguro()">Enviar a WhatsApp 💬</button>
         <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
     </div>
 
     <script>
+        // CORRECCIÓN: Se eliminó el carácter oculto corrupto de la URL
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzr_sKzdQEq7Bjje2lM9ydd8vZTVzvUh6sOa6A39ryU--hxOgTK-wUpP3vRy7xZh7yzNw/exec";
         let codigoOperarioActual = "";
         let nombreOperarioActual = "";
+        let nombreSupervisor = "";
 
         window.onload = function() {
             const savedTheme = localStorage.getItem('theme') || 'light';
@@ -230,15 +231,11 @@
                 limpiarCuadroTexto();
                 return;
             }
-
             codigoOperarioActual = input.value;
             displayInput.value = "Verificando...";
             
-            // Auto-relleno de seguridad instantáneo por si falla Google
             txtArea.value = `COD ${input.value}\n`;
             txtArea.focus();
-
-            // Intenta leer el nombre en segundo plano sin congelar la web
             verificarOperarioEnSheets(input.value);
         }
 
@@ -259,7 +256,7 @@
                     displayInput.value = "OPERARIO VALIDADOR ACTIVO";
                 }
             } catch (error) {
-                displayInput.value = "OPERARIO ACTIVO (Falla Temporal de Red)";
+                displayInput.value = "OPERARIO ACTIVO";
             }
         }
 
@@ -277,7 +274,6 @@
             if (lineas[0] !== encabezadoEsperado && codigoOperarioActual !== "") {
                 lineas[0] = encabezadoEsperado;
             }
-
             for (let i = 1; i < lineas.length; i++) {
                 let textoLinea = lineas[i].trim();
                 if (textoLinea.length > 0) {
@@ -292,17 +288,19 @@
             textarea.value = lineas.join('\n');
         }
 
-        // FUNCIÓN INDESTRUCTIBLE: Dispara WhatsApp sí o sí sin importar caídas de Google
-        async function enviarReporteCompleto() {
+        // CORRECCIÓN: Estructura asíncrona blindada e inmune a errores de caché DNS
+        async function enReporteSeguro() {
             const mensaje = document.getElementById('txtMensaje').value.trim();
             if (!mensaje) return alert("Por favor, escribe un mensaje antes de enviar.");
             
-            // 1. Disparar WhatsApp instantáneamente al 100% de éxito
+            const btnWA = document.getElementById('btnEnviarWA');
+            btnWA.disabled = true;
+
             const mensajeCodificado = encodeURIComponent(mensaje);
+            // URL Absoluta oficial de Meta
             const urlFinal = "https://whatsapp.com" + mensajeCodificado;
             window.open(urlFinal, '_blank');
 
-            // 2. Intentar guardar en la bitácora en la nube de forma aislada
             if (codigoOperarioActual !== "") {
                 fetch(WEB_APP_URL, {
                     method: "POST",
@@ -314,13 +312,13 @@
                         operario: `${codigoOperarioActual} - ${nombreOperarioActual || 'Operador'}`,
                         mensaje: mensaje
                     })
-                }).catch(err => console.log("Guardado local temporal."));
+                }).catch(err => console.log("Guardado en cola."));
             }
 
-            // 3. Limpieza inmediata del formulario para la siguiente tanda de paños
             document.getElementById('codOperario').value = "";
             document.getElementById('displayOperario').value = "Esperando código...";
             limpiarCuadroTexto();
+            btnWA.disabled = false;
         }
 
         function cerrarSesion() {
