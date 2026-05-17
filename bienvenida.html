@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bienvenida Premium</title>
+    <title>Panel de Supervisión</title>
     <style>
         :root {
             --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -46,6 +46,26 @@
             color: var(--text-color);
             transition: all 0.3s ease;
             border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Contenedor del encabezado solicitado */
+        .header-supervisor {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 0;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px; /* Espaciado regular entre elementos */
+        }
+
+        .lbl-green {
+            color: #28a745; /* Verde llamativo solicitado */
+        }
+
+        .lbl-user {
+            font-weight: 500;
         }
         
         textarea {
@@ -110,13 +130,16 @@
     <button class="theme-btn" onclick="toggleTheme()">🌙</button>
 
     <div class="container">
-        <h1 style="color: #28a745; margin-top:0;">¡Bienvenido/a!</h1>
-        <h2 id="usuarioNombre">Cargando...</h2>
-        <p style="opacity: 0.9;">Has ingresado correctamente al sistema.</p>
+        <!-- Encabezado corregido según tu requerimiento -->
+        <div class="header-supervisor">
+            <span class="lbl-green">Supervisor:</span>
+            <span id="usuarioNombre" class="lbl-user">...</span>
+        </div>
+        <p style="opacity: 0.8; margin-top: 0; margin-bottom: 20px; font-size: 14px;">Panel de Gestión de Mensajería</p>
         
-        <hr style="border: 0; border-top: 1px solid var(--input-border); margin: 25px 0;">
+        <hr style="border: 0; border-top: 1px solid var(--input-border); margin: 20px 0;">
         
-        <h3 style="margin-bottom:10px;">Enviar Mensaje por WhatsApp</h3>
+        <h3 style="margin-bottom:10px; font-size: 16px;">Enviar Mensaje por WhatsApp</h3>
         <textarea id="txtMensaje" placeholder="Escribe aquí el mensaje..."></textarea>
         <button class="btn-whatsapp" onclick="enviarWhatsAppInmune()">Enviar a WhatsApp 💬</button>
 
@@ -125,7 +148,6 @@
 
     <script>
         window.onload = function() {
-            // Aplicar tema guardado
             const savedTheme = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-theme', savedTheme);
             document.querySelector('.theme-btn').innerText = savedTheme === 'dark' ? '☀️' : '🌙';
@@ -166,7 +188,7 @@
             let path = window.location.pathname;
             if (window.location.hostname.includes("github.io")) {
                 let segmentos = path.split('/').filter(Boolean);
-                let nombreRepo = segmentos[0] || "";
+                let nombreRepo = segmentos || "";
                 window.location.href = window.location.origin + "/" + nombreRepo + "/" + destino;
             } else {
                 window.location.href = destino;
