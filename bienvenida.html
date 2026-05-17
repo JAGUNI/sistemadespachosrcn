@@ -107,7 +107,7 @@
         
         textarea {
             width: 100%;
-            height: 120px;
+            height: 100px;
             padding: 12px;
             margin-top: 5px;
             border: 1px solid var(--input-border);
@@ -117,10 +117,7 @@
             font-family: inherit;
             background: var(--input-bg);
             color: var(--text-color);
-            font-size: 16px;
-            font-weight: bold;
-            line-height: 1.5;
-            letter-spacing: 1px;
+            font-size: 14px;
             transition: all 0.3s ease;
         }
         
@@ -185,27 +182,30 @@
             <input type="text" id="displayOperario" class="input-display" value="Esperando código..." readonly>
         </div>
 
-        <textarea id="txtMensaje" placeholder="Escribe aquí el mensaje..." oninput="validarFormatoTexto(this)" onkeydown="controlarTeclas(event, this)"></textarea>
-        
-        <!-- BLINDAJE: El botón verde estará activo de fábrica para evitar parálisis de red -->
-        <button id="btnEnviarWA" class="btn-whatsapp" onclick="enviarReporteCompleto()">Enviar a WhatsApp 💬</button>
+        <textarea id="txtMensaje" placeholder="Escribe aquí el mensaje..."></textarea>
+        <button id="btnEnviarWA" class="btn-whatsapp" onclick="enviarWhatsAppInmune()" disabled>Enviar a WhatsApp 💬</button>
 
         <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
     </div>
 
     <script>
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzr_sKzdQEq7Bjje2lM9ydd8vZTVzvUh6sOa6A39ryU--hxOgTK-wUpP3vRy7xZh7yzNw/exec";
-        let codigoOperarioActual = "";
-        let nombreOperarioActual = "";
+        let operarioValidado = false;
+        let nombreSupervisor = "";
 
         window.onload = function() {
             const savedTheme = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-theme', savedTheme);
             document.querySelector('.theme-btn').innerText = savedTheme === 'dark' ? '☀️' : '🌙';
 
-            nombreSupervisor = localStorage.getItem('usuarioLogueado') || "Supervisor";
-            document.getElementById('usuarioNombre').innerText = nombreSupervisor;
-            limpiarCuadroTexto();
+            nombreSupervisor = localStorage.getItem('usuarioLogueado');
+            if (!nombreSupervisor) {
+                alert("Acceso denegado. Por favor inicia sesión.");
+                irAPagina("index.html");
+            } else {
+                document.getElementById('usuarioNombre').innerText = nombreSupervisor;
+                document.getElementById('txtMensaje').value = "¡Hola! Soy " + nombreSupervisor + " y acabo de iniciar sesión en el sistema.";
+            }
         };
 
         function toggleTheme() {
@@ -216,34 +216,27 @@
             document.querySelector('.theme-btn').innerText = newTheme === 'dark' ? '☀️' : '🌙';
         }
 
-        function limpiarCuadroTexto() {
-            document.getElementById('txtMensaje').value = "";
-        }
-
         function procesarEntradaOperario(input) {
-            input.value = input.value.replace(/[^0-9]/g, '');
+            input.value = input.value.replace(/[^0-9]/g, ''); 
+            
+            const btnWA = document.getElementById('btnEnviarWA');
             const displayInput = document.getElementById('displayOperario');
-            const txtArea = document.getElementById('txtMensaje');
             
             if (input.value.length < 5) {
+                btnWA.disabled = true;
+                operarioValidado = false;
                 displayInput.value = "Esperando código...";
-                limpiarCuadroTexto();
                 return;
             }
 
-            codigoOperarioActual = input.value;
             displayInput.value = "Verificando...";
-            
-            // Auto-relleno de seguridad instantáneo por si falla Google
-            txtArea.value = `COD ${input.value}\n`;
-            txtArea.focus();
-
-            // Intenta leer el nombre en segundo plano sin congelar la web
             verificarOperarioEnSheets(input.value);
         }
 
         async function verificarOperarioEnSheets(codigo) {
+            const btnWA = document.getElementById('btnEnviarWA');
             const displayInput = document.getElementById('displayOperario');
+
             try {
                 let res = await fetch(WEB_APP_URL, {
                     method: "POST",
@@ -251,76 +244,38 @@
                     headers: { "Content-Type": "text/plain" },
                     body: JSON.stringify({ action: "checkOperario", codigo: codigo })
                 });
+
                 let resultado = await res.json();
+
                 if (resultado.status === "success") {
-                    nombreOperarioActual = resultado.nombre.toUpperCase();
-                    displayInput.value = nombreOperarioActual;
+                    btnWA.disabled = false; 
+                    operarioValidado = true;
+                    
+                    // CORRECCIÓN: Se quitó la variable `${codigo}`. Ahora solo imprime el nombre en mayúsculas.
+                    displayInput.value = resultado.nombre.toUpperCase();
                 } else {
-                    displayInput.value = "OPERARIO VALIDADOR ACTIVO";
+                    alert("❌ " + resultado.message);
+                    btnWA.disabled = true;
+                    operarioValidado = false;
+                    displayInput.value = "No registrado";
                 }
             } catch (error) {
-                displayInput.value = "OPERARIO ACTIVO (Falla Temporal de Red)";
+                alert("❌ Error de conexión al verificar el código de operario.");
+                btnWA.disabled = true;
+                operarioValidado = false;
+                displayInput.value = "Error de red";
+                console.error(error);
             }
         }
 
-        function controlarTeclas(event, textarea) {
-            const longitudFija = `COD ${codigoOperarioActual}\n`.length;
-            if (textarea.selectionStart <= longitudFija && (event.key === 'Backspace' || event.key === 'Delete')) {
-                event.preventDefault();
-            }
-        }
-
-        function validarFormatoTexto(textarea) {
-            let lineas = textarea.value.split('\n');
-            const encabezadoEsperado = `COD ${codigoOperarioActual}`;
-            
-            if (lineas[0] !== encabezadoEsperado && codigoOperarioActual !== "") {
-                lineas[0] = encabezadoEsperado;
-            }
-
-            for (let i = 1; i < lineas.length; i++) {
-                let textoLinea = lineas[i].trim();
-                if (textoLinea.length > 0) {
-                    let soloNumeros = textoLinea.replace(/[^0-9]/g, '');
-                    textoLinea = 'R' + soloNumeros;
-                }
-                if (textoLinea.length > 7) {
-                    textoLinea = textoLinea.substring(0, 7);
-                }
-                lineas[i] = textoLinea;
-            }
-            textarea.value = lineas.join('\n');
-        }
-
-        // FUNCIÓN INDESTRUCTIBLE: Dispara WhatsApp sí o sí sin importar caídas de Google
-        async function enviarReporteCompleto() {
+        function enviarWhatsAppInmune() {
+            if (!operarioValidado) return alert("Primero debes ingresar un código de operario válido.");
             const mensaje = document.getElementById('txtMensaje').value.trim();
             if (!mensaje) return alert("Por favor, escribe un mensaje antes de enviar.");
             
-            // 1. Disparar WhatsApp instantáneamente al 100% de éxito
             const mensajeCodificado = encodeURIComponent(mensaje);
-            const urlFinal = "https://whatsapp.com" + mensajeCodificado;
+            const urlFinal = `https://wa.me{mensajeCodificado}`;
             window.open(urlFinal, '_blank');
-
-            // 2. Intentar guardar en la bitácora en la nube de forma aislada
-            if (codigoOperarioActual !== "") {
-                fetch(WEB_APP_URL, {
-                    method: "POST",
-                    mode: "cors",
-                    headers: { "Content-Type": "text/plain" },
-                    body: JSON.stringify({
-                        action: "guardarHistorial",
-                        supervisor: nombreSupervisor,
-                        operario: `${codigoOperarioActual} - ${nombreOperarioActual || 'Operador'}`,
-                        mensaje: mensaje
-                    })
-                }).catch(err => console.log("Guardado local temporal."));
-            }
-
-            // 3. Limpieza inmediata del formulario para la siguiente tanda de paños
-            document.getElementById('codOperario').value = "";
-            document.getElementById('displayOperario').value = "Esperando código...";
-            limpiarCuadroTexto();
         }
 
         function cerrarSesion() {
@@ -329,10 +284,10 @@
         }
 
         function irAPagina(destino) {
+            let path = window.location.pathname;
             if (window.location.hostname.includes("github.io")) {
-                let path = window.location.pathname;
                 let segmentos = path.split('/').filter(Boolean);
-                let nombreRepo = segmentos[0] || ""; 
+                let nombreRepo = segmentos || "";
                 window.location.href = window.location.origin + "/" + nombreRepo + "/" + destino;
             } else {
                 window.location.href = destino;
