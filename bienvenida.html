@@ -168,7 +168,6 @@
 </head>
 <body>
 
-    <!-- Ícono corregido para el botón de tema -->
     <button class="theme-btn" onclick="toggleTheme()">🌙</button>
 
     <div class="container">
@@ -187,26 +186,31 @@
         </div>
 
         <textarea id="txtMensaje" placeholder="Escribe aquí el mensaje..." oninput="validarFormatoTexto(this)" onkeydown="controlarTeclas(event, this)"></textarea>
-        
-        <button id="btnEnviarWA" class="btn-whatsapp" onclick="enReporteSeguro()">Enviar a WhatsApp 💬</button>
+        <button id="btnEnviarWA" class="btn-whatsapp" onclick="enviarReporteCompleto()" disabled>Enviar a WhatsApp 💬</button>
+
         <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
     </div>
 
     <script>
-        // CORRECCIÓN: Se eliminó el carácter oculto corrupto de la URL
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzr_sKzdQEq7Bjje2lM9ydd8vZTVzvUh6sOa6A39ryU--hxOgTK-wUpP3vRy7xZh7yzNw/exec";
+        let operarioValidado = false;
+        let nombreSupervisor = "";
         let codigoOperarioActual = "";
         let nombreOperarioActual = "";
-        let nombreSupervisor = "";
 
         window.onload = function() {
             const savedTheme = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-theme', savedTheme);
             document.querySelector('.theme-btn').innerText = savedTheme === 'dark' ? '☀️' : '🌙';
 
-            nombreSupervisor = localStorage.getItem('usuarioLogueado') || "Supervisor";
-            document.getElementById('usuarioNombre').innerText = nombreSupervisor;
-            limpiarCuadroTexto();
+            nombreSupervisor = localStorage.getItem('usuarioLogueado');
+            if (!nombreSupervisor) {
+                alert("Acceso denegado. Por favor inicia sesión.");
+                irAPagina("index.html");
+            } else {
+                document.getElementById('usuarioNombre').innerText = nombreSupervisor;
+                limpiarCuadroTexto();
+            }
         };
 
         function toggleTheme() {
@@ -222,25 +226,27 @@
         }
 
         function procesarEntradaOperario(input) {
-            input.value = input.value.replace(/[^0-9]/g, '');
+            input.value = input.value.replace(/[^0-9]/g, ''); 
+            const btnWA = document.getElementById('btnEnviarWA');
             const displayInput = document.getElementById('displayOperario');
-            const txtArea = document.getElementById('txtMensaje');
             
             if (input.value.length < 5) {
+                btnWA.disabled = true;
+                operarioValidado = false;
                 displayInput.value = "Esperando código...";
                 limpiarCuadroTexto();
                 return;
             }
-            codigoOperarioActual = input.value;
+
             displayInput.value = "Verificando...";
-            
-            txtArea.value = `COD ${input.value}\n`;
-            txtArea.focus();
             verificarOperarioEnSheets(input.value);
         }
 
         async function verificarOperarioEnSheets(codigo) {
+            const btnWA = document.getElementById('btnEnviarWA');
             const displayInput = document.getElementById('displayOperario');
+            const txtArea = document.getElementById('txtMensaje');
+
             try {
                 let res = await fetch(WEB_APP_URL, {
                     method: "POST",
@@ -248,15 +254,32 @@
                     headers: { "Content-Type": "text/plain" },
                     body: JSON.stringify({ action: "checkOperario", codigo: codigo })
                 });
+
                 let resultado = await res.json();
+
                 if (resultado.status === "success") {
+                    btnWA.disabled = false; 
+                    operarioValidado = true;
+                    codigoOperarioActual = codigo;
                     nombreOperarioActual = resultado.nombre.toUpperCase();
                     displayInput.value = nombreOperarioActual;
+                    
+                    txtArea.value = `COD ${codigo}\n`;
+                    txtArea.focus();
                 } else {
-                    displayInput.value = "OPERARIO VALIDADOR ACTIVO";
+                    alert("❌ " + resultado.message);
+                    btnWA.disabled = true;
+                    operarioValidado = false;
+                    displayInput.value = "No registrado";
+                    limpiarCuadroTexto();
                 }
             } catch (error) {
-                displayInput.value = "OPERARIO ACTIVO";
+                alert("❌ Error de conexión al verificar el código de operario.");
+                btnWA.disabled = true;
+                operarioValidado = false;
+                displayInput.value = "Error de red";
+                limpiarCuadroTexto();
+                console.error(error);
             }
         }
 
@@ -268,57 +291,77 @@
         }
 
         function validarFormatoTexto(textarea) {
+            if (!operarioValidado) {
+                textarea.value = "";
+                return;
+            }
+
             let lineas = textarea.value.split('\n');
             const encabezadoEsperado = `COD ${codigoOperarioActual}`;
             
-            if (lineas[0] !== encabezadoEsperado && codigoOperarioActual !== "") {
+            if (lineas[0] !== encabezadoEsperado) {
                 lineas[0] = encabezadoEsperado;
             }
+
             for (let i = 1; i < lineas.length; i++) {
-                let textoLinea = lineas[i].trim();
+                let textoLinea = lineas[i];
+
                 if (textoLinea.length > 0) {
-                    let soloNumeros = textoLinea.replace(/[^0-9]/g, '');
-                    textoLinea = 'R' + soloNumeros;
+                    if (textoLinea.substring(0,1).toUpperCase() !== 'R') {
+                        textoLinea = 'R' + textoLinea.replace(/[^0-9]/g, '');
+                    } else {
+                        textoLinea = 'R' + textoLinea.substring(1).replace(/[^0-9]/g, '');
+                    }
                 }
+
                 if (textoLinea.length > 7) {
                     textoLinea = textoLinea.substring(0, 7);
                 }
+
                 lineas[i] = textoLinea;
             }
+
             textarea.value = lineas.join('\n');
         }
 
-        // CORRECCIÓN: Estructura asíncrona blindada e inmune a errores de caché DNS
-        async function enReporteSeguro() {
+        // FUNCIÓN INTEGRADA CON LA BITÁCORA / HISTORIAL
+        async function enviarReporteCompleto() {
+            if (!operarioValidado) return alert("Primero debes ingresar un código de operario válido.");
             const mensaje = document.getElementById('txtMensaje').value.trim();
             if (!mensaje) return alert("Por favor, escribe un mensaje antes de enviar.");
             
             const btnWA = document.getElementById('btnEnviarWA');
-            btnWA.disabled = true;
+            btnWA.disabled = true; // Evitar clics dobles
 
-            const mensajeCodificado = encodeURIComponent(mensaje);
-            // URL Absoluta oficial de Meta
-            const urlFinal = "https://whatsapp.com" + mensajeCodificado;
-            window.open(urlFinal, '_blank');
+            // 1. Enviar datos en segundo plano a Google Sheets para la bitácora
+            try {
+                let payloadHistorial = {
+                    action: "guardarHistorial",
+                    supervisor: nombreSupervisor,
+                    operario: `${codigoOperarioActual} - ${nombreOperarioActual}`,
+                    mensaje: mensaje
+                };
 
-            if (codigoOperarioActual !== "") {
-                fetch(WEB_APP_URL, {
+                await fetch(WEB_APP_URL, {
                     method: "POST",
                     mode: "cors",
                     headers: { "Content-Type": "text/plain" },
-                    body: JSON.stringify({
-                        action: "guardarHistorial",
-                        supervisor: nombreSupervisor,
-                        operario: `${codigoOperarioActual} - ${nombreOperarioActual || 'Operador'}`,
-                        mensaje: mensaje
-                    })
-                }).catch(err => console.log("Guardado en cola."));
+                    body: JSON.stringify(payloadHistorial)
+                });
+            } catch (err) {
+                console.error("No se pudo registrar en la bitácora, pero se continuará con WhatsApp.", err);
             }
 
+            // 2. Disparar apertura del chat de WhatsApp
+            const mensajeCodificado = encodeURIComponent(mensaje);
+            const urlFinal = `https://wa.me{mensajeCodificado}`;
+            window.open(urlFinal, '_blank');
+
+            // 3. LIMPIEZA AUTOMÁTICA DEL FORMULARIO PARA EL SIGUIENTE ENVÍO
             document.getElementById('codOperario').value = "";
             document.getElementById('displayOperario').value = "Esperando código...";
             limpiarCuadroTexto();
-            btnWA.disabled = false;
+            operarioValidado = false;
         }
 
         function cerrarSesion() {
@@ -327,10 +370,10 @@
         }
 
         function irAPagina(destino) {
+            let path = window.location.pathname;
             if (window.location.hostname.includes("github.io")) {
-                let path = window.location.pathname;
                 let segmentos = path.split('/').filter(Boolean);
-                let nombreRepo = segmentos[0] || ""; 
+                let nombreRepo = segmentos[segmentos.length - 2] || segmentos[0] || "";
                 window.location.href = window.location.origin + "/" + nombreRepo + "/" + destino;
             } else {
                 window.location.href = destino;
