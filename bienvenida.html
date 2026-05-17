@@ -12,6 +12,8 @@
             --input-bg: rgba(255, 255, 255, 0.9);
             --input-border: #cccccc;
             --shadow: rgba(0, 0, 0, 0.15);
+            --readonly-bg: #e9ecef;
+            --readonly-text: #495057;
         }
 
         [data-theme="dark"] {
@@ -21,6 +23,8 @@
             --input-bg: rgba(50, 50, 65, 0.9);
             --input-border: #555565;
             --shadow: rgba(0, 0, 0, 0.5);
+            --readonly-bg: #2d2d3a;
+            --readonly-text: #ced4da;
         }
 
         body { 
@@ -41,7 +45,7 @@
             padding: 40px 30px; 
             border-radius: 16px; 
             box-shadow: 0 8px 32px 0 var(--shadow); 
-            width: 340px; 
+            width: 420px; /* Incrementado ligeramente el ancho para que entren cómodas ambas casillas juntas */
             text-align: center; 
             color: var(--text-color);
             transition: all 0.3s ease;
@@ -62,10 +66,18 @@
         .lbl-green { color: #28a745; }
         .lbl-user { font-weight: 500; }
         
-        .input-operario {
+        /* Contenedor en fila para alinear las casillas una al costado de la otra */
+        .row-operario {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
             width: 100%;
+        }
+
+        /* Casilla de entrada del código (35% del ancho) */
+        .input-code {
+            width: 35%;
             padding: 12px;
-            margin: 10px 0 15px 0;
             border: 1px solid var(--input-border);
             border-radius: 8px;
             box-sizing: border-box;
@@ -73,16 +85,34 @@
             color: var(--text-color);
             font-size: 16px;
             text-align: center;
-            letter-spacing: 4px;
             font-weight: bold;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+        }
+
+        /* Casilla de solo lectura para el código + nombre (65% del ancho) */
+        .input-display {
+            width: 65%;
+            padding: 12px;
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            box-sizing: border-box;
+            background: var(--readonly-bg);
+            color: var(--readonly-text);
+            font-size: 14px;
+            text-align: left;
+            font-weight: bold;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
             transition: all 0.3s ease;
         }
         
         textarea {
             width: 100%;
-            height: 90px;
+            height: 100px;
             padding: 12px;
-            margin-top: 10px;
+            margin-top: 5px;
             border: 1px solid var(--input-border);
             border-radius: 8px;
             resize: none;
@@ -148,9 +178,13 @@
         
         <hr style="border: 0; border-top: 1px solid var(--input-border); margin: 20px 0;">
         
-        <h3 style="margin-bottom:5px; font-size: 16px;">Envio de paños a la planta acabados</h3>
+        <h3 style="margin-bottom:5px; font-size: 16px; text-align: left; padding-left: 2px;">Envio de paños a la planta acabados</h3>
         
-        <input type="text" id="codOperario" class="input-operario" placeholder="CÓDIGO OPERARIO (5 DÍGITOS)" maxlength="5" oninput="procesarEntradaOperario(this)">
+        <!-- Bloque de Casillas Alineadas una al costado de la otra -->
+        <div class="row-operario">
+            <input type="text" id="codOperario" class="input-code" placeholder="CÓDIGO" maxlength="5" oninput="procesarEntradaOperario(this)">
+            <input type="text" id="displayOperario" class="input-display" value="Esperando código..." readonly>
+        </div>
 
         <textarea id="txtMensaje" placeholder="Escribe aquí el mensaje..."></textarea>
         <button id="btnEnviarWA" class="btn-whatsapp" onclick="enviarWhatsAppInmune()" disabled>Enviar a WhatsApp 💬</button>
@@ -174,7 +208,7 @@
                 irAPagina("index.html");
             } else {
                 document.getElementById('usuarioNombre').innerText = nombreSupervisor;
-                restablecerMensaje();
+                document.getElementById('txtMensaje').value = "¡Hola! Soy " + nombreSupervisor + " y acabo de iniciar sesión en el sistema.";
             }
         };
 
@@ -186,28 +220,26 @@
             document.querySelector('.theme-btn').innerText = newTheme === 'dark' ? '☀️' : '🌙';
         }
 
-        // Restablece el cuadro de texto al formato base sin operario
-        function restablecerMensaje() {
-            document.getElementById('txtMensaje').value = "¡Hola! Soy " + nombreSupervisor + " y acabo de iniciar sesión en el sistema.";
-        }
-
         function procesarEntradaOperario(input) {
             input.value = input.value.replace(/[^0-9]/g, ''); 
             
             const btnWA = document.getElementById('btnEnviarWA');
+            const displayInput = document.getElementById('displayOperario');
             
             if (input.value.length < 5) {
                 btnWA.disabled = true;
                 operarioValidado = false;
-                restablecerMensaje(); // Regresa al texto original si borran números
+                displayInput.value = "Esperando código...";
                 return;
             }
 
+            displayInput.value = "Verificando...";
             verificarOperarioEnSheets(input.value);
         }
 
         async function verificarOperarioEnSheets(codigo) {
             const btnWA = document.getElementById('btnEnviarWA');
+            const displayInput = document.getElementById('displayOperario');
 
             try {
                 let res = await fetch(WEB_APP_URL, {
@@ -223,24 +255,19 @@
                     btnWA.disabled = false; 
                     operarioValidado = true;
                     
-                    // NUEVO CAMBIO: Añade de forma inteligente el valor de la columna B (nombre) al cuadro de texto
-                    document.getElementById('txtMensaje').value = 
-                        `Reporte de Envío de Paños\n` +
-                        `Supervisor: ${nombreSupervisor}\n` +
-                        `Operario Asignado: ${resultado.nombre}\n` +
-                        `Cargo: ${resultado.cargo}`;
-                        
+                    // NUEVO CAMBIO: Formato exacto solicitado en la casilla de solo lectura "83634  ANACLO CLAUDIO"
+                    displayInput.value = `${codigo}  ${resultado.nombre.toUpperCase()}`;
                 } else {
                     alert("❌ " + resultado.message);
                     btnWA.disabled = true;
                     operarioValidado = false;
-                    restablecerMensaje();
+                    displayInput.value = "No registrado";
                 }
             } catch (error) {
                 alert("❌ Error de conexión al verificar el código de operario.");
                 btnWA.disabled = true;
                 operarioValidado = false;
-                restablecerMensaje();
+                displayInput.value = "Error de red";
                 console.error(error);
             }
         }
