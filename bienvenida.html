@@ -107,7 +107,7 @@
         
         textarea {
             width: 100%;
-            height: 120px;
+            height: 100px;
             padding: 12px;
             margin-top: 5px;
             border: 1px solid var(--input-border);
@@ -117,10 +117,7 @@
             font-family: inherit;
             background: var(--input-bg);
             color: var(--text-color);
-            font-size: 16px;
-            font-weight: bold;
-            line-height: 1.5;
-            letter-spacing: 1px;
+            font-size: 14px;
             transition: all 0.3s ease;
         }
         
@@ -185,8 +182,7 @@
             <input type="text" id="displayOperario" class="input-display" value="Esperando código..." readonly>
         </div>
 
-        <!-- Evento oninput y onkeydown agregados para controlar las líneas en tiempo real -->
-        <textarea id="txtMensaje" placeholder="Escribe aquí el mensaje..." oninput="validarFormatoTexto(this)" onkeydown="controlarTeclas(event, this)"></textarea>
+        <textarea id="txtMensaje" placeholder="Escribe aquí el mensaje..."></textarea>
         <button id="btnEnviarWA" class="btn-whatsapp" onclick="enviarWhatsAppInmune()" disabled>Enviar a WhatsApp 💬</button>
 
         <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
@@ -196,7 +192,6 @@
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzr_sKzdQEq7Bjje2lM9ydd8vZTVzvUh6sOa6A39ryU--hxOgTK-wUpP3vRy7xZh7yzNw/exec";
         let operarioValidado = false;
         let nombreSupervisor = "";
-        let codigoOperarioActual = "";
 
         window.onload = function() {
             const savedTheme = localStorage.getItem('theme') || 'light';
@@ -209,7 +204,7 @@
                 irAPagina("index.html");
             } else {
                 document.getElementById('usuarioNombre').innerText = nombreSupervisor;
-                limpiarCuadroTexto();
+                document.getElementById('txtMensaje').value = "¡Hola! Soy " + nombreSupervisor + " y acabo de iniciar sesión en el sistema.";
             }
         };
 
@@ -221,12 +216,9 @@
             document.querySelector('.theme-btn').innerText = newTheme === 'dark' ? '☀️' : '🌙';
         }
 
-        function limpiarCuadroTexto() {
-            document.getElementById('txtMensaje').value = "";
-        }
-
         function procesarEntradaOperario(input) {
             input.value = input.value.replace(/[^0-9]/g, ''); 
+            
             const btnWA = document.getElementById('btnEnviarWA');
             const displayInput = document.getElementById('displayOperario');
             
@@ -234,7 +226,6 @@
                 btnWA.disabled = true;
                 operarioValidado = false;
                 displayInput.value = "Esperando código...";
-                limpiarCuadroTexto();
                 return;
             }
 
@@ -245,7 +236,6 @@
         async function verificarOperarioEnSheets(codigo) {
             const btnWA = document.getElementById('btnEnviarWA');
             const displayInput = document.getElementById('displayOperario');
-            const txtArea = document.getElementById('txtMensaje');
 
             try {
                 let res = await fetch(WEB_APP_URL, {
@@ -260,76 +250,22 @@
                 if (resultado.status === "success") {
                     btnWA.disabled = false; 
                     operarioValidado = true;
-                    codigoOperarioActual = codigo;
-                    displayInput.value = resultado.nombre.toUpperCase();
                     
-                    // REQUERIMIENTO: Inserta "COD 84831", genera un salto de línea y posiciona el cursor abajo
-                    txtArea.value = `COD ${codigo}\n`;
-                    txtArea.focus();
+                    // CORRECCIÓN: Se quitó la variable `${codigo}`. Ahora solo imprime el nombre en mayúsculas.
+                    displayInput.value = resultado.nombre.toUpperCase();
                 } else {
                     alert("❌ " + resultado.message);
                     btnWA.disabled = true;
                     operarioValidado = false;
                     displayInput.value = "No registrado";
-                    limpiarCuadroTexto();
                 }
             } catch (error) {
                 alert("❌ Error de conexión al verificar el código de operario.");
                 btnWA.disabled = true;
                 operarioValidado = false;
                 displayInput.value = "Error de red";
-                limpiarCuadroTexto();
                 console.error(error);
             }
-        }
-
-        // Evita que borren el "COD XXXXX" de la primera línea usando la tecla de retroceso
-        function controlarTeclas(event, textarea) {
-            const longitudFija = `COD ${codigoOperarioActual}\n`.length;
-            if (textarea.selectionStart <= longitudFija && (event.key === 'Backspace' || event.key === 'Delete')) {
-                event.preventDefault();
-            }
-        }
-
-        // NUEVO REQUERIMIENTO: Filtro estricto para las líneas siguientes (Forzar formato "R" + 6 números)
-        function validarFormatoTexto(textarea) {
-            if (!operarioValidado) {
-                textarea.value = "";
-                return;
-            }
-
-            let lineas = textarea.value.split('\n');
-            const encabezadoEsperado = `COD ${codigoOperarioActual}`;
-            
-            // Asegurar que la primera línea no sea alterada de ninguna forma
-            if (lineas[0] !== encabezadoEsperado) {
-                lineas[0] = encabezadoEsperado;
-            }
-
-            // Validar las líneas escritas por el usuario
-            for (let i = 1; i < lineas.length; i++) {
-                let textoLinea = lineas[i];
-
-                if (textoLinea.length > 0) {
-                    // Forzar que el primer carácter sea siempre "R" en mayúscula
-                    if (textoLinea[0].toUpperCase() !== 'R') {
-                        textoLinea = 'R' + textoLinea.replace(/[^0-9]/g, '');
-                    } else {
-                        // Mantener la R inicial y limpiar todo lo demás para que sean solo números
-                        textoLinea = 'R' + textoLinea.substring(1).replace(/[^0-9]/g, '');
-                    }
-                }
-
-                // Forzar restricción máxima estricta de 7 caracteres por línea (R + 6 números)
-                if (textoLinea.length > 7) {
-                    textoLinea = textoLinea.substring(0, 7);
-                }
-
-                lineas[i] = textoLinea;
-            }
-
-            // Reconstruir el texto dentro del área
-            textarea.value = lineas.join('\n');
         }
 
         function enviarWhatsAppInmune() {
