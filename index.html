@@ -87,7 +87,8 @@
             <h2>Registrarse</h2>
             <input type="text" id="regUsuario" placeholder="Usuario" required>
             <div class="input-group">
-                <input type="text" id="regEmailUser" placeholder="Correo Electrónico" required>
+                <!-- Se añade un evento oninput para evitar el uso manual del arroba -->
+                <input type="text" id="regEmailUser" placeholder="Correo Electrónico" oninput="validarArroba(this)" required>
                 <select id="regEmailDomain">
                     <option value="@gmail.com">@gmail.com</option>
                     <option value="@uni.pe">@uni.pe</option>
@@ -97,7 +98,7 @@
             </div>
             
             <div class="password-group">
-                <input type="password" id="regPass" placeholder="Contraseña" required>
+                <input type="password" id="regPass" placeholder="Contraseña (mín. 6 caracteres)" required>
                 <button type="button" class="toggle-password" onclick="alternarVisibilidad('regPass', this)">👁️</button>
             </div>
             
@@ -107,7 +108,7 @@
     </div>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzy1AakSlaq8KdbG4a4PkyE5yOnhaQLZXRaYbDcGY6sH94oBqcKR3KBL954mwpxXbEAXA/exec";
+        const WEB_APP_URL = "https://google.com";
 
         function cambiarFormulario(mostrarLogin) {
             document.getElementById('loginForm').classList.toggle('hidden', !mostrarLogin);
@@ -141,6 +142,14 @@
             document.getElementById('regPass').value = "";
         }
 
+        // NUEVA FUNCIÓN: Elimina automáticamente el símbolo @ si el usuario intenta escribirlo
+        function validarArroba(input) {
+            if (input.value.includes('@')) {
+                alert("No es necesario escribir el '@'. Selecciona tu servidor de correo en la lista de la derecha.");
+                input.value = input.value.replace(/@/g, '');
+            }
+        }
+
         async function ejecutarAccion(action) {
             let payload = { action: action };
 
@@ -151,12 +160,26 @@
                 payload.correo = emailUser ? (emailUser + emailDomain) : "";
                 payload.password = document.getElementById('regPass').value;
                 
-                if(!payload.usuario || !emailUser || !payload.password) return alert("Completa todos los campos");
+                // VALIDACIONES DE SEGURIDAD EXCLUSIVAS PARA REGISTRO
+                if(!payload.usuario || !emailUser || !payload.password) {
+                    return alert("⚠️ Por favor, completa todos los campos del formulario.");
+                }
+                
+                if(payload.usuario.length < 3) {
+                    return alert("⚠️ El nombre de usuario debe tener al menos 3 caracteres.");
+                }
+
+                if(payload.password.length < 6) {
+                    return alert("🔒 Contraseña desprotegida. Debe tener un mínimo de 6 caracteres.");
+                }
+                
             } else {
                 payload.usuario = document.getElementById('loginUsuario').value.trim();
                 payload.password = document.getElementById('loginPass').value;
                 
-                if(!payload.usuario || !payload.password) return alert("Completa todos los campos");
+                if(!payload.usuario || !payload.password) {
+                    return alert("⚠️ Ingresa tu usuario y contraseña para continuar.");
+                }
             }
 
             try {
@@ -186,7 +209,6 @@
             }
         }
 
-        // Función inteligente para evitar errores 404 al cambiar de página
         function irAPagina(destino) {
             let path = window.location.pathname;
             if (window.location.hostname.includes("github.io")) {
