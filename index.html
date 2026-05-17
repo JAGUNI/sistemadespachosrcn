@@ -3,69 +3,170 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Acceso</title>
+    <title>Sistema de Acceso Premium</title>
     <style>
-        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f4f9; margin: 0; }
-        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 320px; text-align: center; }
+        /* Variables de colores para cambiar entre temas */
+        :root {
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --panel-bg: rgba(255, 255, 255, 0.85);
+            --text-color: #333333;
+            --input-bg: rgba(255, 255, 255, 0.9);
+            --input-border: #cccccc;
+            --btn-bg: #007BFF;
+            --btn-hover: #0056b3;
+            --shadow: rgba(0, 0, 0, 0.15);
+        }
+
+        [data-theme="dark"] {
+            --bg-gradient: linear-gradient(135deg, #1f1c2c 0%, #928dab 100%);
+            --panel-bg: rgba(30, 30, 40, 0.85);
+            --text-color: #ffffff;
+            --input-bg: rgba(50, 50, 65, 0.9);
+            --input-border: #555565;
+            --btn-bg: #0056b3;
+            --btn-hover: #004085;
+            --shadow: rgba(0, 0, 0, 0.5);
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            background: var(--bg-gradient); 
+            margin: 0;
+            transition: background 0.5s ease;
+        }
+
+        /* Caja contenedora con efecto cristal (Glassmorphism) */
+        .container { 
+            background: var(--panel-bg); 
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 40px 30px; 
+            border-radius: 16px; 
+            box-shadow: 0 8px 32px 0 var(--shadow); 
+            width: 320px; 
+            text-align: center; 
+            color: var(--text-color);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h2 { margin-bottom: 25px; font-weight: 600; }
         
-        input[type="text"]:not(.input-group input) { 
-            width: 97%; 
-            padding: 10px; 
+        input[type="text"]:not(.input-group input), input[type="password"] { 
+            width: 100%; 
+            padding: 12px; 
             margin: 10px 0; 
-            border: 1px solid #ccc; 
-            border-radius: 4px; 
+            border: 1px solid var(--input-border); 
+            border-radius: 8px; 
             box-sizing: border-box;
+            background: var(--input-bg);
+            color: var(--text-color);
+            font-size: 15px;
+            transition: all 0.3s ease;
         }
         
         .input-group, .password-group {
             display: flex;
             align-items: center;
-            background: white;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
             margin: 10px 0;
-            width: 97%;
+            width: 100%;
             box-sizing: border-box;
+            transition: all 0.3s ease;
         }
+
         .input-group input, .password-group input {
             flex: 1;
             border: none !important;
             margin: 0 !important;
-            padding: 10px;
+            padding: 12px;
             outline: none;
             background: transparent;
-            width: 100%;
+            color: var(--text-color);
+            font-size: 15px;
         }
+
         .input-group select {
             border: none;
             background: transparent;
-            padding: 10px 5px;
+            padding: 12px 5px;
             outline: none;
-            color: #555;
+            color: var(--text-color);
             font-size: 14px;
             cursor: pointer;
-            border-left: 1px solid #eee;
+            border-left: 1px solid var(--input-border);
+        }
+
+        .input-group select option {
+            background: var(--input-bg);
+            color: var(--text-color);
         }
         
         .toggle-password {
             background: none;
             border: none;
-            color: #777;
-            font-size: 16px;
             cursor: pointer;
-            padding: 0 10px;
+            padding: 0 12px;
             margin: 0;
             width: auto;
+            font-size: 16px;
         }
-        .toggle-password:hover { background: none; color: #333; }
 
-        button:not(.toggle-password) { width: 97%; padding: 10px; background: #007BFF; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 10px; }
-        button:not(.toggle-password):hover { background: #0056b3; }
-        .toggle-link { margin-top: 15px; color: #555; font-size: 14px; cursor: pointer; text-decoration: underline; }
+        button:not(.toggle-password):not(.theme-btn) { 
+            width: 100%; 
+            padding: 12px; 
+            background: var(--btn-bg); 
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 16px; 
+            font-weight: bold;
+            margin-top: 15px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+        }
+
+        button:not(.toggle-password):not(.theme-btn):hover { 
+            background: var(--btn-hover); 
+            transform: translateY(-1px);
+        }
+
+        .toggle-link { margin-top: 20px; color: var(--text-color); font-size: 14px; cursor: pointer; text-decoration: underline; opacity: 0.8; }
+        .toggle-link:hover { opacity: 1; }
         .hidden { display: none; }
+
+        /* Botón flotante para el Modo Oscuro */
+        .theme-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--panel-bg);
+            border: 1px solid var(--input-border);
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            box-shadow: 0 4px 12px var(--shadow);
+            transition: all 0.3s ease;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
 </head>
 <body>
+
+    <!-- Botón de Modo Oscuro -->
+    <button class="theme-btn" onclick="toggleTheme()">🌙</button>
 
     <div class="container">
         <!-- Formulario Login -->
@@ -87,7 +188,6 @@
             <h2>Registrarse</h2>
             <input type="text" id="regUsuario" placeholder="Usuario" required>
             <div class="input-group">
-                <!-- Se añade un evento oninput para evitar el uso manual del arroba -->
                 <input type="text" id="regEmailUser" placeholder="Correo Electrónico" oninput="validarArroba(this)" required>
                 <select id="regEmailDomain">
                     <option value="@gmail.com">@gmail.com</option>
@@ -109,6 +209,21 @@
 
     <script>
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzy1AakSlaq8KdbG4a4PkyE5yOnhaQLZXRaYbDcGY6sH94oBqcKR3KBL954mwpxXbEAXA/exec";
+
+        // Cargar tema guardado al iniciar
+        window.onload = function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            document.querySelector('.theme-btn').innerText = savedTheme === 'dark' ? '☀️' : '🌙';
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            document.querySelector('.theme-btn').innerText = newTheme === 'dark' ? '☀️' : '🌙';
+        }
 
         function cambiarFormulario(mostrarLogin) {
             document.getElementById('loginForm').classList.toggle('hidden', !mostrarLogin);
@@ -142,10 +257,9 @@
             document.getElementById('regPass').value = "";
         }
 
-        // NUEVA FUNCIÓN: Elimina automáticamente el símbolo @ si el usuario intenta escribirlo
         function validarArroba(input) {
             if (input.value.includes('@')) {
-                alert("No es necesario escribir el '@'. Selecciona tu servidor de correo en la lista de la derecha.");
+                alert("No es necesario escribir el '@'. Selecciona tu servidor de correo en la lista.");
                 input.value = input.value.replace(/@/g, '');
             }
         }
@@ -160,26 +274,13 @@
                 payload.correo = emailUser ? (emailUser + emailDomain) : "";
                 payload.password = document.getElementById('regPass').value;
                 
-                // VALIDACIONES DE SEGURIDAD EXCLUSIVAS PARA REGISTRO
-                if(!payload.usuario || !emailUser || !payload.password) {
-                    return alert("⚠️ Por favor, completa todos los campos del formulario.");
-                }
-                
-                if(payload.usuario.length < 3) {
-                    return alert("⚠️ El nombre de usuario debe tener al menos 3 caracteres.");
-                }
-
-                if(payload.password.length < 6) {
-                    return alert("🔒 Contraseña desprotegida. Debe tener un mínimo de 6 caracteres.");
-                }
-                
+                if(!payload.usuario || !emailUser || !payload.password) return alert("⚠️ Completa todos los campos.");
+                if(payload.usuario.length < 3) return alert("⚠️ El usuario debe tener al menos 3 caracteres.");
+                if(payload.password.length < 6) return alert("🔒 La contraseña debe tener un mínimo de 6 caracteres.");
             } else {
                 payload.usuario = document.getElementById('loginUsuario').value.trim();
                 payload.password = document.getElementById('loginPass').value;
-                
-                if(!payload.usuario || !payload.password) {
-                    return alert("⚠️ Ingresa tu usuario y contraseña para continuar.");
-                }
+                if(!payload.usuario || !payload.password) return alert("⚠️ Ingresa tu usuario y contraseña.");
             }
 
             try {
@@ -204,7 +305,7 @@
                     alert(resultado.message);
                 }
             } catch (error) {
-                alert("Error de conexión. Asegúrate de haber publicado tu Google Apps Script como 'Nueva versión' y con acceso para 'Cualquiera'.");
+                alert("Error de conexión con la base de datos.");
                 console.error(error);
             }
         }
