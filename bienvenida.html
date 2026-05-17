@@ -3,17 +3,13 @@
 <head>
  <meta charset="UTF-8">
  <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <title>Panel de Supervisión</title>
+ <title>Bienvenido - Envío de WhatsApp</title>
  <style>
  :root {
  --bg-gradient: linear-gradient(135deg, #1f1c2c 0%, #928dab 100%);
  --panel-bg: rgba(30, 30, 40, 0.85);
  --text-color: #ffffff;
- --input-bg: rgba(50, 50, 65, 0.9);
- --input-border: #555565;
  --shadow: rgba(0, 0, 0, 0.5);
- --readonly-bg: #2d2d3a;
- --readonly-text: #ced4da;
  }
  body { 
  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
@@ -31,224 +27,53 @@
  padding: 40px 30px; 
  border-radius: 16px; 
  box-shadow: 0 8px 32px 0 var(--shadow); 
- width: 420px; 
+ width: 350px; 
  text-align: center; 
  color: var(--text-color);
  border: 1px solid rgba(255, 255, 255, 0.1);
  }
- .header-supervisor {
- font-size: 24px;
- font-weight: bold;
+ h2 {
  margin-top: 0;
- margin-bottom: 20px;
- display: flex;
- justify-content: center;
- align-items: center;
- gap: 8px;
+ margin-bottom: 25px;
+ font-size: 24px;
  }
- .lbl-green { color: #28a745; }
- .lbl-user { font-weight: bold; }
- 
- .row-operario {
- display: flex;
- gap: 10px;
- margin: 15px 0;
- width: 100%;
- }
- .input-code {
- width: 35%;
- padding: 12px;
- border: 1px solid var(--input-border);
- border-radius: 8px;
- box-sizing: border-box;
- background: #eef2f7;
- color: #333333;
- font-size: 16px;
- text-align: center;
- font-weight: bold;
- letter-spacing: 1px;
- }
- .input-display {
- width: 65%;
- padding: 12px;
- border: 1px solid var(--input-border);
- border-radius: 8px;
- box-sizing: border-box;
- background: var(--readonly-bg);
- color: var(--readonly-text);
- font-size: 14px;
- text-align: left;
- font-weight: bold;
- overflow: hidden;
- text-overflow: ellipsis;
- white-space: nowrap;
- }
- 
- textarea {
- width: 100%;
- height: 140px;
- padding: 12px;
- margin-top: 5px;
- border: 1px solid var(--input-border);
- border-radius: 8px;
- resize: none;
- box-sizing: border-box;
- font-family: inherit;
- background: var(--input-bg);
- color: var(--text-color);
- font-size: 16px;
- font-weight: bold;
- line-height: 1.5;
- letter-spacing: 1px;
- }
- 
  button { 
  width: 100%; 
- padding: 14px; 
+ padding: 15px; 
  border: none; 
  border-radius: 8px; 
  cursor: pointer; 
  font-size: 16px; 
  font-weight: bold;
- margin-top: 15px; 
- box-shadow: 0 4px 10px rgba(0,0,0,0.1);
  transition: all 0.2s ease;
+ box-shadow: 0 4px 10px rgba(0,0,0,0.2);
  }
- button:disabled { background: #cccccc !important; color: #666666 !important; cursor: not-allowed; box-shadow: none; }
- .btn-whatsapp { background: #c5c5c5; color: #555555; }
- .btn-whatsapp.active { background: #25D366; color: white; cursor: pointer; }
- .btn-whatsapp.active:hover { background: #128C7E; }
- 
- .btn-logout { background: #dc3545; color: white; margin-top: 20px; }
+ button:hover { transform: translateY(-1px); }
+ .btn-whatsapp { background: #25D366; color: white; }
+ .btn-whatsapp:hover { background: #128C7E; }
+ .btn-logout { background: #dc3545; color: white; margin-top: 20px; padding: 10px; font-size: 14px; }
  .btn-logout:hover { background: #bd2130; }
  </style>
 </head>
 <body>
  <div class="container">
- <div class="header-supervisor">
- <span class="lbl-green">Supervisor:</span>
- <span id="usuarioNombre" class="lbl-user">...</span>
- </div>
+ <h2>¡Bienvenido!</h2>
  
- <hr style="border: 0; border-top: 1px solid var(--input-border); margin: 20px 0;">
+ <!-- Botón simplificado de envío directo -->
+ <button class="btn-whatsapp" onclick="enviarMensaje()">Enviar Mensaje</button>
  
- <h3 style="margin-bottom:5px; font-size: 16px; text-align: left; padding-left: 2px;">Envio de paños a la planta acabados</h3>
- 
- <div class="row-operario">
- <input type="text" id="codOperario" class="input-code" placeholder="CÓDIGO" maxlength="5" oninput="procesarEntradaOperario(this)">
- <input type="text" id="displayOperario" class="input-display" value="Esperando código..." readonly>
- </div>
- <textarea id="txtMensaje" placeholder="Escribe aquí el mensaje..." oninput="validarFormatoTexto(this)" onkeydown="controlarTeclas(event, this)"></textarea>
- 
- <button id="btnEnviarWA" class="btn-whatsapp" onclick="enviarReporteCompleto()">Enviar a WhatsApp 💬</button>
  <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
  </div>
 
  <script>
- const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzr_sKzdQEq7Bjje2lM9ydd8vZTVzvUh6sOa6A39ryU--hxOgTK-wUpP3vRy7xZh7yzNw/exec";
- let codigoOperarioActual = "";
- let nombreOperarioActual = "";
- let nombreSupervisor = "";
-
- window.onload = function() {
- nombreSupervisor = localStorage.getItem('usuarioLogueado') || "jj";
- document.getElementById('usuarioNombre').innerText = nombreSupervisor;
- limpiarCuadroTexto();
- };
-
- function limpiarCuadroTexto() {
- document.getElementById('txtMensaje').value = "";
- }
-
- function procesarEntradaOperario(input) {
- input.value = input.value.replace(/[^0-9]/g, '');
- const displayInput = document.getElementById('displayOperario');
- const txtArea = document.getElementById('txtMensaje');
- 
- if (input.value.length < 5) {
- displayInput.value = "Esperando código...";
- limpiarCuadroTexto();
- return;
- }
- codigoOperarioActual = input.value;
- displayInput.value = "Verificando...";
- 
- txtArea.value = `COD ${input.value}\n`;
- txtArea.focus();
- verificarOperarioEnSheets(input.value);
- }
-
- async function verificarOperarioEnSheets(codigo) {
- const displayInput = document.getElementById('displayOperario');
- const btnWA = document.getElementById('btnEnviarWA');
- try {
- let res = await fetch(WEB_APP_URL, {
- method: "POST",
- mode: "cors",
- headers: { "Content-Type": "text/plain" },
- body: JSON.stringify({ action: "checkOperario", codigo: codigo })
- });
- let resultado = await res.json();
- if (resultado.status === "success") {
- nombreOperarioActual = resultado.nombre.toUpperCase();
- displayInput.value = nombreOperarioActual;
- btnWA.classList.add('active'); // Activa el color verde de WhatsApp
- } else {
- displayInput.value = "OPERARIO NO ENCONTRADO";
- }
- } catch (error) {
- displayInput.value = "ANACLO CLAUDIO"; // Modo simulación / Falla de red
- btnWA.classList.add('active');
- }
- }
-
- function controlarTeclas(event, textarea) {
- const longitudFija = `COD ${codigoOperarioActual}\n`.length;
- if (textarea.selectionStart <= longitudFija && (event.key === 'Backspace' || event.key === 'Delete')) {
- event.preventDefault();
- }
- }
-
- function validarFormatoTexto(textarea) {
- let lineas = textarea.value.split('\n');
- const encabezadoEsperado = `COD ${codigoOperarioActual}`;
- 
- if (lineas[0] !== encabezadoEsperado && codigoOperarioActual !== "") {
- lineas[0] = encabezadoEsperado;
- }
- textarea.value = lineas.join('\n');
- }
- 
- async function enviarReporteCompleto() {
- const mensaje = document.getElementById('txtMensaje').value.trim();
- if (!mensaje) return alert("Por favor, escribe un mensaje antes de enviar.");
- 
- const btnWA = document.getElementById('btnEnviarWA');
- btnWA.disabled = true;
- 
+ function enviarMensaje() {
+ // Mensaje fijo configurado: "everyone"
+ const mensaje = "everyone";
  const mensajeCodificado = encodeURIComponent(mensaje);
+ 
+ // Enlace directo al número 946068651 con código de Perú (51)
  const urlFinal = "https://wa.me" + mensajeCodificado;
  window.open(urlFinal, '_blank');
- 
- if (codigoOperarioActual !== "") {
- fetch(WEB_APP_URL, {
- method: "POST",
- mode: "cors",
- headers: { "Content-Type": "text/plain" },
- body: JSON.stringify({
- action: "guardarHistorial",
- supervisor: nombreSupervisor,
- operario: `${codigoOperarioActual} - ${nombreOperarioActual || 'ANACLO CLAUDIO'}`,
- mensaje: mensaje
- })
- }).catch(err => console.log("Guardado local temporal."));
- }
- 
- document.getElementById('codOperario').value = "";
- document.getElementById('displayOperario').value = "Esperando código...";
- limpiarCuadroTexto();
- btnWA.disabled = false;
- btnWA.classList.remove('active');
  }
 
  function cerrarSesion() {
@@ -260,7 +85,7 @@
  if (window.location.hostname.includes("github.io")) {
  let path = window.location.pathname;
  let segmentos = path.split('/').filter(Boolean);
- let nombreRepo = segmentos[0] || ""; 
+ let nombreRepo = segmentos || ""; 
  window.location.href = window.location.origin + "/" + nombreRepo + "/" + destino;
  } else {
  window.location.href = destino;
