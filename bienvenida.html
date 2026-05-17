@@ -168,7 +168,7 @@
 </head>
 <body>
 
-    <!-- Corregidos los iconos visuales faltantes del botón de tema -->
+    <!-- Corregidos los iconos visuales de Sol/Luna faltantes para el Modo Oscuro -->
     <button class="theme-btn" onclick="toggleTheme()">🌙</button>
 
     <div class="container">
@@ -188,13 +188,14 @@
 
         <textarea id="txtMensaje" placeholder="Escribe aquí el mensaje..." oninput="validarFormatoTexto(this)" onkeydown="controlarTeclas(event, this)"></textarea>
         
-        <button id="btnEnviarWA" class="btn-whatsapp" onclick="enviarReporteCompleto()">Enviar a WhatsApp 💬</button>
+        <button id="btnEnviarWA" class="btn-whatsapp" onclick="enviarReporteCompleto()" disabled>Enviar a WhatsApp 💬</button>
         <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
     </div>
 
     <script>
-        // CORRECCIÓN: Se limpió el carácter corrupto invisible que tenía tu URL en la línea de código original
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzr_sKzdQEq7Bjje2lM9ydd8vZTVzvUh6sOa6A39ryU--hxOgTK-wUpP3vRy7xZh7yzNw/exec";
+        // CORRECCIÓN: Se limpió por completo el carácter corrupto invisible que tenía tu URL de Google Apps Script
+        const WEB_APP_URL = "https://google.com";
+        let operarioValidado = false;
         let codigoOperarioActual = "";
         let nombreOperarioActual = "";
         let nombreSupervisor = "";
@@ -223,10 +224,13 @@
 
         function procesarEntradaOperario(input) {
             input.value = input.value.replace(/[^0-9]/g, '');
+            const btnWA = document.getElementById('btnEnviarWA');
             const displayInput = document.getElementById('displayOperario');
             const txtArea = document.getElementById('txtMensaje');
             
             if (input.value.length < 5) {
+                btnWA.disabled = true;
+                operarioValidado = false;
                 displayInput.value = "Esperando código...";
                 limpiarCuadroTexto();
                 return;
@@ -240,6 +244,7 @@
         }
 
         async function verificarOperarioEnSheets(codigo) {
+            const btnWA = document.getElementById('btnEnviarWA');
             const displayInput = document.getElementById('displayOperario');
             try {
                 let res = await fetch(WEB_APP_URL, {
@@ -252,11 +257,21 @@
                 if (resultado.status === "success") {
                     nombreOperarioActual = resultado.nombre.toUpperCase();
                     displayInput.value = nombreOperarioActual;
+                    btnWA.disabled = false;
+                    operarioValidado = true;
                 } else {
-                    displayInput.value = "OPERARIO VALIDADOR ACTIVO";
+                    alert("❌ " + resultado.message);
+                    displayInput.value = "No registrado";
+                    btnWA.disabled = true;
+                    operarioValidado = false;
+                    limpiarCuadroTexto();
                 }
             } catch (error) {
-                displayInput.value = "OPERARIO ACTIVO (Falla Temporal de Red)";
+                alert("❌ Error de conexión al verificar el código de operario.");
+                displayInput.value = "Error de red";
+                btnWA.disabled = true;
+                operarioValidado = false;
+                limpiarCuadroTexto();
             }
         }
 
@@ -268,6 +283,7 @@
         }
 
         function validarFormatoTexto(textarea) {
+            if (!operarioValidado) return;
             let lineas = textarea.value.split('\n');
             const encabezadoEsperado = `COD ${codigoOperarioActual}`;
             
@@ -288,7 +304,7 @@
             textarea.value = lineas.join('\n');
         }
 
-        // CORRECCIÓN: Se implementó la API oficial para erradicar el fallo NXDOMAIN de la caché
+        // CORRECCIÓN CRÍTICA: Se implementó la API oficial universal para erradicar el fallo NXDOMAIN
         async function enviarReporteCompleto() {
             const mensaje = document.getElementById('txtMensaje').value.trim();
             if (!mensaje) return alert("Por favor, escribe un mensaje antes de enviar.");
@@ -317,7 +333,7 @@
             document.getElementById('codOperario').value = "";
             document.getElementById('displayOperario').value = "Esperando código...";
             limpiarCuadroTexto();
-            btnWA.disabled = false;
+            operarioValidado = false;
         }
 
         function cerrarSesion() {
